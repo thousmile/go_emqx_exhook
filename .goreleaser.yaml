@@ -42,6 +42,3 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-
-env_files:
-  github_token: ../../github_token
