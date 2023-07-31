@@ -37,6 +37,7 @@ docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config
 ![](./images/20230728154744.png)
 
 
+
 ### 二次开发
 ```shell
 proto 生成 go 代码
