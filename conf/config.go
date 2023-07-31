@@ -29,6 +29,14 @@ func init() {
 			},
 		},
 	)
+	viper.SetDefault(
+		"queue",
+		Queue{
+			BatchSize:  100,
+			Workers:    1,
+			LingerTime: 1,
+		},
+	)
 	viper.SetConfigName("config")                // name of config file (without extension)
 	viper.SetConfigType("yaml")                  // REQUIRED if the config file does not have the extension in the name
 	viper.AddConfigPath("/etc/appname/")         // 查找配置文件所在路径
@@ -56,6 +64,9 @@ type ServerConfig struct {
 
 	// Rocketmq 配置
 	RocketmqConfig RocketmqConfig `yaml:"rocketmqConfig" json:"rocketmqConfig"`
+
+	// Queue 队列配置
+	Queue Queue `yaml:"queue" json:"queue"`
 }
 
 // RocketmqConfig 桥接到 Rocketmq 的配置
@@ -75,4 +86,16 @@ type BridgeRule struct {
 
 	// Rocketmq 的 Tag
 	TargetTag string `yaml:"targetTag" json:"targetTag"`
+}
+
+// Queue 配置
+type Queue struct {
+	// 批量处理的数据，默认: 100 条
+	BatchSize int `yaml:"batchSize" json:"batchSize"`
+
+	// 工作线程，默认: 1 个
+	Workers int `yaml:"workers" json:"workers"`
+
+	// LingerTime 延迟时间(单位秒)，默认: 1 秒
+	LingerTime int `yaml:"lingerTime" json:"lingerTime"`
 }

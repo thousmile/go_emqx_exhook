@@ -9,4 +9,9 @@ bridgeRule:
 
 rocketmqConfig:
   nameServer:
-    - 192.168.0.196:9876
+    - 192.168.0.188:9876
+
+queue:
+  batchSize: 100
+  workers: 1
+  lingerTime: 1

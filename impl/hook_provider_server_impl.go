@@ -1,20 +1,15 @@
 package impl
 
 import (
-	context "context"
-	"github.com/apache/rocketmq-client-go/v2"
-	"github.com/apache/rocketmq-client-go/v2/primitive"
+	"context"
 	"go_emqx_exhook/emqx.io/grpc/exhook"
 	"log"
-	"strconv"
 )
 
 type HookProviderServerImpl struct {
 	exhook.UnimplementedHookProviderServer
-	Producer     rocketmq.Producer
-	TargetTopic  string
-	TargetTag    string
 	SourceTopics []string
+	Receive      func(msg *exhook.Message)
 }
 
 // OnProviderLoaded 注册钩子加载,开启钩子服务,onProviderLoaded中目前包含所有的钩子服务，可以将用的放开注释，只需要在本类中实现需要的方法即可
@@ -130,29 +125,7 @@ func (h *HookProviderServerImpl) OnSessionTerminated(ctx context.Context, reques
 
 // OnMessagePublish 收到消息处理
 func (h *HookProviderServerImpl) OnMessagePublish(ctx context.Context, request *exhook.MessagePublishRequest) (*exhook.ValuedResponse, error) {
-	sourceMessage := request.GetMessage()
-	targetMessage := &primitive.Message{
-		Topic: h.TargetTopic,
-		Body:  sourceMessage.Payload,
-	}
-	targetMessage.WithKeys([]string{sourceMessage.Id})
-	targetMessage.WithTag(h.TargetTag)
-	for key, val := range sourceMessage.GetHeaders() {
-		targetMessage.WithProperty(key, val)
-	}
-	targetMessage.WithProperty("sourceId", sourceMessage.Id)
-	targetMessage.WithProperty("sourceTopic", sourceMessage.Topic)
-	targetMessage.WithProperty("sourceNode", sourceMessage.Node)
-	targetMessage.WithProperty("sourceFrom", sourceMessage.From)
-	targetMessage.WithProperty("sourceQos", strconv.Itoa(int(sourceMessage.Qos)))
-	targetMessage.WithProperty("sourceTimestamp",
-		strconv.FormatInt(int64(sourceMessage.Timestamp), 10))
-	_ = h.Producer.SendAsync(context.Background(),
-		func(ctx context.Context, result *primitive.SendResult, err error) {
-			if err != nil {
-				log.Printf("SendAsync: %v \n", err)
-			}
-		}, targetMessage)
+	h.Receive(request.GetMessage())
 	return &exhook.ValuedResponse{
 		Type:  exhook.ValuedResponse_CONTINUE,
 		Value: &exhook.ValuedResponse_Message{Message: request.GetMessage()},

@@ -17,6 +17,13 @@ bridgeRule:
 rocketmqConfig:
   nameServer:
     - 127.0.0.1:9876
+
+## 队列信息
+queue:
+  batchSize: 100
+  workers: 1
+  lingerTime: 1
+
 ```
 
 docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml --restart=always thousmile/go_emqx_exhook:1.1
