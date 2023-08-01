@@ -29,11 +29,12 @@ func init() {
 			},
 		},
 	)
+	viper.SetDefault("sendMethod", "queue")
 	viper.SetDefault(
 		"queue",
 		Queue{
 			BatchSize:  100,
-			Workers:    1,
+			Workers:    2,
 			LingerTime: 1,
 		},
 	)
@@ -64,6 +65,9 @@ type ServerConfig struct {
 
 	// Rocketmq 配置
 	RocketmqConfig RocketmqConfig `yaml:"rocketmqConfig" json:"rocketmqConfig"`
+
+	// SendMethod 发送方式。默认是队列，queue , direct
+	SendMethod string `yaml:"sendMethod" json:"sendMethod"`
 
 	// Queue 队列配置
 	Queue Queue `yaml:"queue" json:"queue"`

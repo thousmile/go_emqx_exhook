@@ -11,7 +11,10 @@ rocketmqConfig:
   nameServer:
     - 192.168.0.188:9876
 
+## 发送方式 queue or direct ，默认 queue
+sendMethod: queue
+
 queue:
   batchSize: 100
-  workers: 1
+  workers: 2
   lingerTime: 1

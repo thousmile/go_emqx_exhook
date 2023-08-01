@@ -18,6 +18,9 @@ rocketmqConfig:
   nameServer:
     - 127.0.0.1:9876
 
+## 发送方式 queue or direct ，默认 queue
+sendMethod: queue
+
 ## 队列信息
 queue:
   batchSize: 100
