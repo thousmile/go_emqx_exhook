@@ -4,7 +4,7 @@ port: 16565
 bridgeRule:
   sourceTopics:
     - "/#"
-  targetTopic: emqx_msg_bridge
+  targetTopic: hello_msg_exhook
   targetTag: emqx
 
 rocketmqConfig:

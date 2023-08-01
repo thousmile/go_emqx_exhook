@@ -33,7 +33,6 @@ func Queue(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 			option.Workers = rmqQueue.Workers
 			option.ChannelBufferSize = option.BatchSize * 2
 			option.LingerTime = time.Duration(rmqQueue.LingerTime) * time.Second
-			option.Logger = log.Default()
 			log.Printf("channelx option : %v \n", option)
 			return option
 		},
@@ -41,21 +40,25 @@ func Queue(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 	aggr.Start()
 	defer aggr.SafeStop()
 	for {
-		aggr.TryEnqueue(<-ch)
+		if sourceMessage, ok := <-ch; ok {
+			aggr.TryEnqueue(sourceMessage)
+		}
 	}
 }
 
 // Direct 直接发送
 func Direct(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 	for {
-		targetMessages := buildTargetMessage(<-ch)
-		err := rmqProducer.SendAsync(context.Background(), func(ctx context.Context, result *primitive.SendResult, err error) {
+		if sourceMessage, ok := <-ch; ok {
+			targetMessages := buildTargetMessage(sourceMessage)
+			err := rmqProducer.SendAsync(context.Background(), func(ctx context.Context, result *primitive.SendResult, err error) {
+				if err != nil {
+					log.Printf(err.Error())
+				}
+			}, targetMessages)
 			if err != nil {
-				log.Printf(err.Error())
+				log.Printf("[direct] send message error: %s\n", err)
 			}
-		}, targetMessages)
-		if err != nil {
-			log.Printf("[direct] send message error: %s\n", err)
 		}
 	}
 }
