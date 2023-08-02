@@ -9,16 +9,15 @@ import (
 var Config *ServerConfig
 
 func init() {
-	viper.SetDefault("appName", "go_emqx_exhook")
+	viper.SetDefault("appName", "go-emqx-exhook")
 	viper.SetDefault("port", 16565)
+	viper.SetDefault("chanBufferSize", 10240)
 	viper.SetDefault(
 		"bridgeRule",
 		BridgeRule{
-			SourceTopics: []string{
-				"/#",
-			},
-			TargetTopic: "emqx_msg_bridge",
-			TargetTag:   "emqx",
+			SourceTopics: []string{"/#"},
+			TargetTopic:  "emqx_msg_bridge",
+			TargetTag:    "emqx",
 		},
 	)
 	viper.SetDefault(
@@ -54,11 +53,14 @@ func init() {
 }
 
 type ServerConfig struct {
-	// 服务名称
+	// 服务名称 ，默认: go-emqx-exhook
 	AppName string `yaml:"appName" json:"appName"`
 
-	// 服务端口
+	// 服务端口 ，默认: 16565
 	Port int `yaml:"port" json:"port"`
+
+	// ChanBufferSize 管道缓冲区大小，默认: 10240
+	ChanBufferSize int `yaml:"chanBufferSize" json:"chanBufferSize"`
 
 	// 桥接规则
 	BridgeRule BridgeRule `yaml:"bridgeRule" json:"bridgeRule"`
@@ -97,7 +99,7 @@ type Queue struct {
 	// 批量处理的数据，默认: 100 条
 	BatchSize int `yaml:"batchSize" json:"batchSize"`
 
-	// 工作线程，默认: 1 个
+	// 工作线程，默认: 2 个
 	Workers int `yaml:"workers" json:"workers"`
 
 	// LingerTime 延迟时间(单位秒)，默认: 1 秒

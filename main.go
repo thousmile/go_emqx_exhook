@@ -39,7 +39,7 @@ func main() {
 
 	srv := grpc.NewServer()
 
-	ch := make(chan *exhook.Message, 10000)
+	ch := make(chan *exhook.Message, appConf.ChanBufferSize)
 	// 发送方式“ queue or direct ”
 	if appConf.SendMethod == "queue" {
 		go Queue(rmqProducer, ch)
@@ -50,10 +50,7 @@ func main() {
 	// 注册 emqx 的 exhook grpc 服务
 	exhook.RegisterHookProviderServer(srv, &impl.HookProviderServerImpl{
 		SourceTopics: rmqRule.SourceTopics,
-		// 接收到 emqx 的消息后，立即发送到 队列中。
-		Receive: func(msg *exhook.Message) {
-			ch <- msg
-		},
+		Receive:      ch,
 	})
 
 	// 监听 指定端口的 tcp 连接

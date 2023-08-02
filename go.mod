@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/apache/rocketmq-client-go/v2 v2.1.1
+	github.com/google/uuid v1.3.0
 	github.com/spf13/viper v1.16.0
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0

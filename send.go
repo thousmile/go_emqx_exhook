@@ -16,7 +16,7 @@ import (
 func Queue(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 	rmqQueue := conf.Config.Queue
 	// 批量消息队列中
-	aggr := channelx.NewAggregator[*exhook.Message](
+	aggregator := channelx.NewAggregator[*exhook.Message](
 		func(messages []*exhook.Message) error {
 			targetMessages := make([]*primitive.Message, len(messages))
 			for idx, sourceMessage := range messages {
@@ -24,7 +24,7 @@ func Queue(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 			}
 			_, err := rmqProducer.SendSync(context.Background(), targetMessages...)
 			if err != nil {
-				log.Printf("[queue] send message [%d] error: %s\n", len(targetMessages), err)
+				log.Printf("[queue] Batch SendSync [%d] error: %s\n", len(targetMessages), err)
 			}
 			return nil
 		},
@@ -37,11 +37,11 @@ func Queue(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 			return option
 		},
 	)
-	aggr.Start()
-	defer aggr.SafeStop()
+	aggregator.Start()
+	defer aggregator.SafeStop()
 	for {
 		if sourceMessage, ok := <-ch; ok {
-			aggr.TryEnqueue(sourceMessage)
+			aggregator.TryEnqueue(sourceMessage)
 		}
 	}
 }
@@ -51,11 +51,15 @@ func Direct(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 	for {
 		if sourceMessage, ok := <-ch; ok {
 			targetMessages := buildTargetMessage(sourceMessage)
-			err := rmqProducer.SendAsync(context.Background(), func(ctx context.Context, result *primitive.SendResult, err error) {
-				if err != nil {
-					log.Printf(err.Error())
-				}
-			}, targetMessages)
+			err := rmqProducer.SendAsync(
+				context.Background(),
+				func(ctx context.Context, result *primitive.SendResult, err error) {
+					if err != nil {
+						log.Printf("[direct] SendAsync : %v \n", err.Error())
+					}
+				},
+				targetMessages,
+			)
 			if err != nil {
 				log.Printf("[direct] send message error: %s\n", err)
 			}
@@ -63,6 +67,7 @@ func Direct(rmqProducer rocketmq.Producer, ch chan *exhook.Message) {
 	}
 }
 
+// buildTargetMessage 构建消息
 func buildTargetMessage(sourceMessage *exhook.Message) *primitive.Message {
 	rmqRule := conf.Config.BridgeRule
 	targetMessage := &primitive.Message{

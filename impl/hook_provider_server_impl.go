@@ -9,7 +9,7 @@ import (
 type HookProviderServerImpl struct {
 	exhook.UnimplementedHookProviderServer
 	SourceTopics []string
-	Receive      func(msg *exhook.Message)
+	Receive      chan *exhook.Message
 }
 
 // OnProviderLoaded 注册钩子加载,开启钩子服务,onProviderLoaded中目前包含所有的钩子服务，可以将用的放开注释，只需要在本类中实现需要的方法即可
@@ -62,13 +62,11 @@ func (h *HookProviderServerImpl) OnClientConnack(ctx context.Context, request *e
 
 // OnClientConnected 客户端连接成功
 func (h *HookProviderServerImpl) OnClientConnected(ctx context.Context, request *exhook.ClientConnectedRequest) (*exhook.EmptySuccess, error) {
-	log.Printf("OnClientConnected: \n%v\n%v\n", request.GetClientinfo(), request.GetMeta())
 	return &exhook.EmptySuccess{}, nil
 }
 
 // OnClientDisconnected 客户端断开连接
 func (h *HookProviderServerImpl) OnClientDisconnected(ctx context.Context, request *exhook.ClientDisconnectedRequest) (*exhook.EmptySuccess, error) {
-	log.Printf("OnClientDisconnected: \n%v\n%v\n%v\n", request.GetClientinfo(), request.GetMeta(), request.GetReason())
 	return &exhook.EmptySuccess{}, nil
 }
 
@@ -125,7 +123,8 @@ func (h *HookProviderServerImpl) OnSessionTerminated(ctx context.Context, reques
 
 // OnMessagePublish 收到消息处理
 func (h *HookProviderServerImpl) OnMessagePublish(ctx context.Context, request *exhook.MessagePublishRequest) (*exhook.ValuedResponse, error) {
-	h.Receive(request.GetMessage())
+	// 消息发送到管道
+	h.Receive <- request.GetMessage()
 	return &exhook.ValuedResponse{
 		Type:  exhook.ValuedResponse_CONTINUE,
 		Value: &exhook.ValuedResponse_Message{Message: request.GetMessage()},
