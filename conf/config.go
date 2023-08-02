@@ -9,7 +9,7 @@ import (
 var Config *ServerConfig
 
 func init() {
-	viper.SetDefault("appName", "go-emqx-exhook")
+	viper.SetDefault("appName", "go_emqx_exhook")
 	viper.SetDefault("port", 16565)
 	viper.SetDefault("chanBufferSize", 10240)
 	viper.SetDefault(

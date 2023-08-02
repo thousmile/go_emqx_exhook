@@ -34,7 +34,8 @@ queue:
 
 ```
 
-docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml --restart=always thousmile/go_emqx_exhook:1.1
+
+docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml --restart=always thousmile/go_emqx_exhook:1.2
 
 ## 本地运行
 
@@ -57,13 +58,13 @@ goreleaser --snapshot --skip-publish --clean
 
 
 构建docker镜像
-docker build -t go_emqx_exhook:1.1 ./
+docker build -t go_emqx_exhook:1.2 ./
 
 
 运行docker容器
-docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.1
+docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.2
 
 ## 指定配置文件
-docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml --restart=always go_emqx_exhook:1.1
+docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml --restart=always go_emqx_exhook:1.2
 
 ```
