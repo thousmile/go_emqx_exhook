@@ -35,7 +35,10 @@ queue:
 ```
 
 ```shell
-docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml --restart=always thousmile/go_emqx_exhook:1.2
+docker run -d --name go_emqx_exhook -p 16565:16565 \
+  -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
+  -v /etc/localtime:/etc/localtime:ro \
+  --restart=always thousmile/go_emqx_exhook:1.2
 ```
 
 vim docker-compose.yml
@@ -56,8 +59,6 @@ services:
     container_name: go_emqx_exhook
     ports:
       - "16565:16565"
-    environment:
-      - TZ="Asia/Shanghai"
     volumes:
       - /etc/go_emqx_exhook/config.yaml:/apps/config.yaml
       - /etc/localtime:/etc/localtime:ro
@@ -100,7 +101,11 @@ docker build -t go_emqx_exhook:1.2 ./
 运行docker容器
 docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.2
 
+
 ## 指定配置文件
-docker run -d --name go_emqx_exhook -p 16565:16565 -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml --restart=always go_emqx_exhook:1.2
+docker run -d --name go_emqx_exhook -p 16565:16565 \
+  -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \ 
+  -v /etc/localtime:/etc/localtime:ro \ 
+  --restart=always thousmile/go_emqx_exhook:1.2
 
 ```
