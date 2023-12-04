@@ -5,68 +5,71 @@ import (
 	"go_emqx_exhook/conf"
 	"go_emqx_exhook/emqx.io/grpc/exhook"
 	"log"
+	"strconv"
 	"strings"
 )
 
 type RabbitmqMessageProvider struct {
 	// 目标主题
-	TargetTopic string
+	RoutingKeys []string
+	// 交换机
+	ExchangeName string
 	// rabbitmq 提供者
 	RabbitProducer *rabbitmq.Publisher
+	// rabbitmq 连接
+	RabbitmqConn *rabbitmq.Conn
 }
 
 func (r RabbitmqMessageProvider) BatchSend(messages []*exhook.Message) {
-	//TODO implement me
-	panic("implement me")
+	for _, message := range messages {
+		r.SingleSend(message)
+	}
 }
 
 func (r RabbitmqMessageProvider) SingleSend(message *exhook.Message) {
-
-	//TODO implement me
-	panic("implement me")
+	headers := r.buildTargetMessageHeaders(message)
+	err := r.RabbitProducer.Publish(
+		message.Payload,
+		r.RoutingKeys,
+		rabbitmq.WithPublishOptionsHeaders(headers),
+		rabbitmq.WithPublishOptionsExchange(r.ExchangeName),
+	)
+	if err != nil {
+		log.Printf("[direct] rabbitmq single send error: %v \n", err.Error())
+	}
 }
 
 // BuildTargetMessage 构建消息
-func (r RabbitmqMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) []byte {
-	return nil
+func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook.Message) rabbitmq.Table {
+	headers := map[string]interface{}{
+		SourceId:        sourceMessage.Id,
+		SourceTopic:     sourceMessage.Topic,
+		SourceNode:      sourceMessage.Node,
+		SourceFrom:      sourceMessage.From,
+		SourceQos:       strconv.Itoa(int(sourceMessage.Qos)),
+		SourceTimestamp: strconv.FormatInt(int64(sourceMessage.Timestamp), 10),
+	}
+	return headers
 }
 
-func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig, targetTopic string) RabbitmqMessageProvider {
+func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessageProvider {
 	url := strings.Join(rbbConf.Addresses, ",")
-	conn, err := rabbitmq.NewConn(
-		url,
-		rabbitmq.WithConnectionOptionsLogging,
-	)
+	conn, err := rabbitmq.NewConn(url, rabbitmq.WithConnectionOptionsLogging)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func(conn *rabbitmq.Conn) {
-		err := conn.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(conn)
 	publisher, err := rabbitmq.NewPublisher(
 		conn,
 		rabbitmq.WithPublisherOptionsLogging,
 		rabbitmq.WithPublisherOptionsExchangeName(rbbConf.ExchangeName),
-		rabbitmq.WithPublisherOptionsExchangeDeclare,
+		rabbitmq.WithPublisherOptionsExchangeDurable,
 	)
-	defer publisher.Close()
-
-	publisher.NotifyReturn(func(r rabbitmq.Return) {
-		log.Printf("message returned from server: %s", string(r.Body))
-	})
-
-	publisher.NotifyPublish(func(c rabbitmq.Confirmation) {
-		log.Printf("message confirmed from server. tag: %v, ack: %v", c.DeliveryTag, c.Ack)
-	})
-
 	if err != nil {
 		log.Fatal(err)
 	}
 	p1 := RabbitmqMessageProvider{
-		TargetTopic:    targetTopic,
+		RoutingKeys:    rbbConf.RoutingKeys,
+		ExchangeName:   rbbConf.ExchangeName,
 		RabbitProducer: publisher,
 	}
 	return p1

@@ -1,25 +1,32 @@
 appName: go_emqx_exhook
 port: 16565
-mqType: Rocketmq
+
+# Rocketmq、Rabbitmq、Kafka
+mqType: Kafka
 
 bridgeRule:
-  sourceTopics:
+  topics:
     - "/#"
-  targetTopic: hello_msg_exhook
 
 rocketmqConfig:
   nameServer:
-    - 192.168.0.188:9876
-  targetTag: exhook
+    - 127.0.0.1:9876
+  topic: emqx_exhook
+  tag: exhook
   groupName: exhook
   retry: 2
 
-rocketmqConfig:
-  nameServer:
-    - 192.168.0.188:9876
-  targetTag: exhook
-  groupName: exhook
-  retry: 2
+rabbitmqConfig:
+  addresses:
+    - amqp://guest:guest@127.0.0.1
+  virtualHost: /
+  routingKeys: exhook
+  exchangeName: emqx.exhook
+
+kafkaConfig:
+  addresses:
+    - 127.0.0.1:9092
+  topic: emqx_exhook
 
 ## 发送方式 queue or direct ，默认 queue
 sendMethod: queue

@@ -8,6 +8,7 @@ import (
 	"go_emqx_exhook/impl"
 	"go_emqx_exhook/provider"
 	"google.golang.org/grpc"
+	"io"
 	"log"
 	"net"
 	"strings"
@@ -18,19 +19,31 @@ func main() {
 	rule := appConf.BridgeRule
 	// 创建一个消息提供者
 	var msgProvider provider.MessageProvider
-
+	// 关闭连接
+	connClose := func(conn io.Closer) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	if strings.EqualFold(appConf.MqType, "Rabbitmq") || strings.EqualFold(appConf.MqType, "rabbitmq") {
-		rabbitmqProvider := provider.BuildRabbitmqMessageProvider(appConf.RabbitmqConfig, rule.TargetTopic)
-		msgProvider = rabbitmqProvider
+		rabbit := provider.BuildRabbitmqMessageProvider(appConf.RabbitmqConfig)
+		defer rabbit.RabbitProducer.Close()
+		defer connClose(rabbit.RabbitmqConn)
+		msgProvider = rabbit
+	} else if strings.EqualFold(appConf.MqType, "Kafka") || strings.EqualFold(appConf.MqType, "kafka") {
+		kafka := provider.BuildKafkaMessageProvider(appConf.KafkaConfig)
+		defer connClose(kafka.KafkaProducer)
+		msgProvider = kafka
 	} else {
-		rocketmqProvider := provider.BuildRocketmqMessageProvider(appConf.RocketmqConfig, rule.TargetTopic)
+		rmq := provider.BuildRocketmqMessageProvider(appConf.RocketmqConfig)
 		defer func(p rocketmq.Producer) {
 			err := p.Shutdown()
 			if err != nil {
 				log.Fatal(err)
 			}
-		}(rocketmqProvider.RmqProducer)
-		msgProvider = rocketmqProvider
+		}(rmq.RmqProducer)
+		msgProvider = rmq
 	}
 
 	ch := make(chan *exhook.Message, appConf.ChanBufferSize)
@@ -45,7 +58,7 @@ func main() {
 	srv := grpc.NewServer()
 	// 注册 emqx 的 exhook grpc 服务
 	exhook.RegisterHookProviderServer(srv, &impl.HookProviderServerImpl{
-		SourceTopics: rule.SourceTopics,
+		SourceTopics: rule.Topics,
 		Receive:      ch,
 	})
 
@@ -61,6 +74,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}(lis)
-	log.Printf("%s [%s] => grpc server listen port : %d \n", appConf.AppName, appConf.SendMethod, appConf.Port)
+	log.Printf("%s [%s] %s => grpc server listen port : %d \n", appConf.AppName, appConf.SendMethod, appConf.MqType, appConf.Port)
 	_ = srv.Serve(lis)
 }

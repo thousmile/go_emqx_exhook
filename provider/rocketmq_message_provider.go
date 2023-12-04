@@ -14,9 +14,9 @@ import (
 
 type RocketmqMessageProvider struct {
 	// 目标主题
-	TargetTopic string
+	Topic string
 	// 目标tag
-	TargetTag string
+	Tag string
 	// rocketmq 提供者
 	RmqProducer rocketmq.Producer
 }
@@ -38,7 +38,7 @@ func (r RocketmqMessageProvider) SingleSend(message *exhook.Message) {
 		context.Background(),
 		func(ctx context.Context, result *primitive.SendResult, err error) {
 			if err != nil {
-				log.Printf("[direct] rocketmq single send : %v \n", err.Error())
+				log.Printf("[direct] rocketmq single send error: %v \n", err.Error())
 			}
 		},
 		targetMessages,
@@ -51,11 +51,11 @@ func (r RocketmqMessageProvider) SingleSend(message *exhook.Message) {
 // BuildTargetMessage 构建消息
 func (r RocketmqMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) *primitive.Message {
 	targetMessage := &primitive.Message{
-		Topic: r.TargetTopic,
+		Topic: r.Topic,
 		Body:  sourceMessage.Payload,
 	}
 	targetMessage.WithKeys([]string{sourceMessage.Id})
-	targetMessage.WithTag(r.TargetTag)
+	targetMessage.WithTag(r.Tag)
 	for key, val := range sourceMessage.GetHeaders() {
 		targetMessage.WithProperty(key, val)
 	}
@@ -69,7 +69,7 @@ func (r RocketmqMessageProvider) buildTargetMessage(sourceMessage *exhook.Messag
 	return targetMessage
 }
 
-func BuildRocketmqMessageProvider(rmqConf conf.RocketmqConfig, targetTopic string) RocketmqMessageProvider {
+func BuildRocketmqMessageProvider(rmqConf conf.RocketmqConfig) RocketmqMessageProvider {
 	rmqProducer, _ := rocketmq.NewProducer(
 		producer.WithNsResolver(primitive.NewPassthroughResolver(rmqConf.NameServer)),
 		producer.WithRetry(rmqConf.Retry),
@@ -80,10 +80,9 @@ func BuildRocketmqMessageProvider(rmqConf conf.RocketmqConfig, targetTopic strin
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	p1 := RocketmqMessageProvider{
-		TargetTopic: targetTopic,
-		TargetTag:   rmqConf.TargetTag,
+		Topic:       rmqConf.Topic,
+		Tag:         rmqConf.Tag,
 		RmqProducer: rmqProducer,
 	}
 	return p1

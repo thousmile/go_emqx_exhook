@@ -16,8 +16,7 @@ func init() {
 	viper.SetDefault(
 		"bridgeRule",
 		BridgeRule{
-			SourceTopics: []string{"/#"},
-			TargetTopic:  "emqx_msg_bridge",
+			Topics: []string{"/#"},
 		},
 	)
 	viper.SetDefault(
@@ -26,7 +25,8 @@ func init() {
 			NameServer: []string{
 				"127.0.0.1:9876",
 			},
-			TargetTag: "exhook",
+			Topic:     "emqx_exhook",
+			Tag:       "exhook",
 			GroupName: "exhook",
 			Retry:     2,
 		},
@@ -34,10 +34,17 @@ func init() {
 	viper.SetDefault(
 		"rabbitmqConfig",
 		RabbitmqConfig{
-			Addresses:    []string{"amqp://guest:guest@localhost"},
-			RoutingKeys:  []string{"exhook_routing_key"},
+			Addresses:    []string{"amqp://guest:guest@127.0.0.1"},
+			RoutingKeys:  []string{"exhook"},
 			VirtualHost:  "/",
-			ExchangeName: "exhook",
+			ExchangeName: "emqx.exhook",
+		},
+	)
+	viper.SetDefault(
+		"kafkaConfig",
+		KafkaConfig{
+			Addresses: []string{"127.0.0.1:9092"},
+			Topic:     "emqx_exhook",
 		},
 	)
 	viper.SetDefault("sendMethod", "queue")
@@ -77,7 +84,7 @@ type ServerConfig struct {
 	// 桥接规则
 	BridgeRule BridgeRule `yaml:"bridgeRule" json:"bridgeRule"`
 
-	// mq 类型 Rocketmq、Rabbitmq
+	// mq 类型 Rocketmq、Rabbitmq、Kafka
 	MqType string `yaml:"mqType" json:"mqType"`
 
 	// Rocketmq 配置
@@ -85,6 +92,9 @@ type ServerConfig struct {
 
 	// Rabbitmq 配置
 	RabbitmqConfig RabbitmqConfig `yaml:"rabbitmqConfig" json:"rabbitmqConfig"`
+
+	// Kafka 配置
+	KafkaConfig KafkaConfig `yaml:"kafkaConfig" json:"kafkaConfig"`
 
 	// SendMethod 发送方式。默认是队列，queue , direct
 	SendMethod string `yaml:"sendMethod" json:"sendMethod"`
@@ -96,10 +106,7 @@ type ServerConfig struct {
 // BridgeRule 桥接规则
 type BridgeRule struct {
 	// Emqx 的主题
-	SourceTopics []string `yaml:"sourceTopics" json:"sourceTopics"`
-
-	// Rocketmq 的主题
-	TargetTopic string `yaml:"targetTopic" json:"targetTopic"`
+	Topics []string `yaml:"topics" json:"topics"`
 }
 
 // RocketmqConfig 桥接到 Rocketmq 的配置
@@ -108,8 +115,11 @@ type RocketmqConfig struct {
 	// Rocketmq NameServer
 	NameServer []string `yaml:"nameServer" json:"nameServer"`
 
+	// Rocketmq 的主题
+	Topic string `yaml:"topic" json:"topic"`
+
 	// Rocketmq 的 Tag
-	TargetTag string `yaml:"targetTag" json:"targetTag"`
+	Tag string `yaml:"tag" json:"tag"`
 
 	// Rocketmq 的 分组名称
 	GroupName string `yaml:"groupName" json:"groupName"`
@@ -132,6 +142,16 @@ type RabbitmqConfig struct {
 
 	// Rocketmq ExchangeName
 	ExchangeName string `yaml:"exchangeName" json:"exchangeName"`
+}
+
+// KafkaConfig 桥接到 Kafka 的配置
+type KafkaConfig struct {
+
+	// Kafka Addresses
+	Addresses []string `yaml:"addresses" json:"addresses"`
+
+	// Rocketmq 的主题
+	Topic string `yaml:"topic" json:"topic"`
 }
 
 // Queue 配置
