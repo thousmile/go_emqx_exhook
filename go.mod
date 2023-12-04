@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/apache/rocketmq-client-go/v2 v2.1.1
 	github.com/spf13/viper v1.16.0
+	github.com/wagslane/go-rabbitmq v0.12.4
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
 )
@@ -24,6 +25,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pelletier/go-toml/v2 v2.0.8 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rabbitmq/amqp091-go v1.7.0 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.4.0 // indirect
 	github.com/spf13/afero v1.9.5 // indirect

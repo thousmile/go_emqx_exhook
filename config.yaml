@@ -1,15 +1,25 @@
 appName: go_emqx_exhook
 port: 16565
+mqType: Rocketmq
 
 bridgeRule:
   sourceTopics:
     - "/#"
   targetTopic: hello_msg_exhook
-  targetTag: emqx
 
 rocketmqConfig:
   nameServer:
     - 192.168.0.188:9876
+  targetTag: exhook
+  groupName: exhook
+  retry: 2
+
+rocketmqConfig:
+  nameServer:
+    - 192.168.0.188:9876
+  targetTag: exhook
+  groupName: exhook
+  retry: 2
 
 ## 发送方式 queue or direct ，默认 queue
 sendMethod: queue

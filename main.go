@@ -3,53 +3,49 @@ package main
 import (
 	"fmt"
 	"github.com/apache/rocketmq-client-go/v2"
-	"github.com/apache/rocketmq-client-go/v2/primitive"
-	"github.com/apache/rocketmq-client-go/v2/producer"
 	"go_emqx_exhook/conf"
 	"go_emqx_exhook/emqx.io/grpc/exhook"
 	"go_emqx_exhook/impl"
+	"go_emqx_exhook/provider"
 	"google.golang.org/grpc"
 	"log"
 	"net"
-	"time"
+	"strings"
 )
 
 func main() {
 	appConf := conf.Config
+	rule := appConf.BridgeRule
+	// 创建一个消息提供者
+	var msgProvider provider.MessageProvider
 
-	rmqConf := appConf.RocketmqConfig
-	rmqRule := appConf.BridgeRule
-	rmqProducer, _ := rocketmq.NewProducer(
-		producer.WithNsResolver(primitive.NewPassthroughResolver(rmqConf.NameServer)),
-		producer.WithRetry(2),
-		producer.WithGroupName("exhook"),
-		producer.WithSendMsgTimeout(time.Second*1),
-	)
-	err := rmqProducer.Start()
-	if err != nil {
-		log.Fatal(err)
+	if strings.EqualFold(appConf.MqType, "Rabbitmq") || strings.EqualFold(appConf.MqType, "rabbitmq") {
+		rabbitmqProvider := provider.BuildRabbitmqMessageProvider(appConf.RabbitmqConfig, rule.TargetTopic)
+		msgProvider = rabbitmqProvider
+	} else {
+		rocketmqProvider := provider.BuildRocketmqMessageProvider(appConf.RocketmqConfig, rule.TargetTopic)
+		defer func(p rocketmq.Producer) {
+			err := p.Shutdown()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}(rocketmqProvider.RmqProducer)
+		msgProvider = rocketmqProvider
 	}
-
-	defer func(rmqProducer rocketmq.Producer) {
-		err := rmqProducer.Shutdown()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}(rmqProducer)
-
-	srv := grpc.NewServer()
 
 	ch := make(chan *exhook.Message, appConf.ChanBufferSize)
+
 	// 发送方式“ queue or direct ”
 	if appConf.SendMethod == "queue" {
-		go Queue(rmqProducer, ch)
+		go Queue(msgProvider, ch)
 	} else {
-		go Direct(rmqProducer, ch)
+		go Direct(msgProvider, ch)
 	}
 
+	srv := grpc.NewServer()
 	// 注册 emqx 的 exhook grpc 服务
 	exhook.RegisterHookProviderServer(srv, &impl.HookProviderServerImpl{
-		SourceTopics: rmqRule.SourceTopics,
+		SourceTopics: rule.SourceTopics,
 		Receive:      ch,
 	})
 

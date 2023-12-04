@@ -12,12 +12,12 @@ func init() {
 	viper.SetDefault("appName", "go_emqx_exhook")
 	viper.SetDefault("port", 16565)
 	viper.SetDefault("chanBufferSize", 10240)
+	viper.SetDefault("mqType", "Rocketmq")
 	viper.SetDefault(
 		"bridgeRule",
 		BridgeRule{
 			SourceTopics: []string{"/#"},
 			TargetTopic:  "emqx_msg_bridge",
-			TargetTag:    "emqx",
 		},
 	)
 	viper.SetDefault(
@@ -26,6 +26,18 @@ func init() {
 			NameServer: []string{
 				"127.0.0.1:9876",
 			},
+			TargetTag: "exhook",
+			GroupName: "exhook",
+			Retry:     2,
+		},
+	)
+	viper.SetDefault(
+		"rabbitmqConfig",
+		RabbitmqConfig{
+			Addresses:    []string{"amqp://guest:guest@localhost"},
+			RoutingKeys:  []string{"exhook_routing_key"},
+			VirtualHost:  "/",
+			ExchangeName: "exhook",
 		},
 	)
 	viper.SetDefault("sendMethod", "queue")
@@ -65,21 +77,20 @@ type ServerConfig struct {
 	// 桥接规则
 	BridgeRule BridgeRule `yaml:"bridgeRule" json:"bridgeRule"`
 
+	// mq 类型 Rocketmq、Rabbitmq
+	MqType string `yaml:"mqType" json:"mqType"`
+
 	// Rocketmq 配置
 	RocketmqConfig RocketmqConfig `yaml:"rocketmqConfig" json:"rocketmqConfig"`
+
+	// Rabbitmq 配置
+	RabbitmqConfig RabbitmqConfig `yaml:"rabbitmqConfig" json:"rabbitmqConfig"`
 
 	// SendMethod 发送方式。默认是队列，queue , direct
 	SendMethod string `yaml:"sendMethod" json:"sendMethod"`
 
 	// Queue 队列配置
 	Queue Queue `yaml:"queue" json:"queue"`
-}
-
-// RocketmqConfig 桥接到 Rocketmq 的配置
-type RocketmqConfig struct {
-
-	// Rocketmq NameServer
-	NameServer []string `yaml:"nameServer" json:"nameServer"`
 }
 
 // BridgeRule 桥接规则
@@ -89,9 +100,38 @@ type BridgeRule struct {
 
 	// Rocketmq 的主题
 	TargetTopic string `yaml:"targetTopic" json:"targetTopic"`
+}
+
+// RocketmqConfig 桥接到 Rocketmq 的配置
+type RocketmqConfig struct {
+
+	// Rocketmq NameServer
+	NameServer []string `yaml:"nameServer" json:"nameServer"`
 
 	// Rocketmq 的 Tag
 	TargetTag string `yaml:"targetTag" json:"targetTag"`
+
+	// Rocketmq 的 分组名称
+	GroupName string `yaml:"groupName" json:"groupName"`
+
+	// Rocketmq 的 重试次数
+	Retry int `yaml:"retry" json:"retry"`
+}
+
+// RabbitmqConfig 桥接到 Rabbitmq 的配置
+type RabbitmqConfig struct {
+
+	// Rocketmq Addresses
+	Addresses []string `yaml:"addresses" json:"addresses"`
+
+	// Rocketmq RoutingKeys
+	RoutingKeys []string `yaml:"routingKeys" json:"routingKeys"`
+
+	// Rocketmq VirtualHost
+	VirtualHost string `yaml:"virtualHost" json:"virtualHost"`
+
+	// Rocketmq ExchangeName
+	ExchangeName string `yaml:"exchangeName" json:"exchangeName"`
 }
 
 // Queue 配置
