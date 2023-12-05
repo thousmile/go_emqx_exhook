@@ -72,7 +72,6 @@ func (r RocketmqMessageProvider) buildTargetMessage(sourceMessage *exhook.Messag
 func BuildRocketmqMessageProvider(rmqConf conf.RocketmqConfig) RocketmqMessageProvider {
 	rmqProducer, _ := rocketmq.NewProducer(
 		producer.WithNsResolver(primitive.NewPassthroughResolver(rmqConf.NameServer)),
-		producer.WithRetry(rmqConf.Retry),
 		producer.WithGroupName(rmqConf.GroupName),
 		producer.WithSendMsgTimeout(time.Second*1),
 	)

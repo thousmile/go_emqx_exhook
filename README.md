@@ -5,28 +5,44 @@ vim /etc/go_emqx_exhook/config.yaml
 ```yaml
 appName: go_emqx_exhook
 port: 16565
-chanBufferSize: 10240
 
+# Rocketmq、Rabbitmq、Kafka
+mqType: Rabbitmq
+
+# emqx 主题
 bridgeRule:
-  ## emqx 的主题，可以多个
-  sourceTopics:
-    - "/test/#"
-    - "/hello/+"
-  ## rocketmq 的 主题
-  targetTopic: emqx_msg_bridge
-  targetTag: emqx
+  topics:
+    - "/#"
 
-## rocketmq name server
+# rocketmq 配置，需要提前创建 主题
 rocketmqConfig:
   nameServer:
-    - 127.0.0.1:9876
+    - 192.168.0.188:9876
+  topic: emqx_exhook
+  tag: exhook
+  groupName: exhook
 
-## 发送方式 queue or direct ，默认 queue
-## direct: 收到消息后，立即转发到 rocketmq 中
-## queue: 收到消息后，消息进入队列，当满足任意条件(1.收到100条消息，2.收到消息的时间大于1秒)，批量转发到 rocketmq。 
+
+# rabbitmq 配置，需要提前创建 交换机 并且绑定队列
+rabbitmqConfig:
+  addresses:
+    - amqp://rabbit:mht123456@192.168.0.188:5672
+  exchangeName: emqx_exhook
+  routingKeys: exhook
+  virtualHost: /
+
+
+# kafka 配置，需要提前创建 主题
+kafkaConfig:
+  addresses:
+    - 192.168.0.188:9092
+  topic: emqx_exhook
+
+
+# 发送方式 queue or direct ，默认 queue
+# 注: rabbitmq 不支持队列发送
 sendMethod: queue
 
-## 队列信息
 queue:
   batchSize: 100
   workers: 2

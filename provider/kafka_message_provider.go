@@ -24,7 +24,7 @@ func (r KafkaMessageProvider) BatchSend(messages []*exhook.Message) {
 	}
 	err := r.KafkaProducer.SendMessages(targetMessages)
 	if err != nil {
-		log.Printf("[queue] rocketmq batch send [%d] error: %s\n", len(targetMessages), err)
+		log.Printf("[queue] kafka batch send [%d] error: %s\n", len(targetMessages), err)
 	}
 }
 
@@ -38,6 +38,7 @@ func (r KafkaMessageProvider) SingleSend(message *exhook.Message) {
 
 // BuildTargetMessage 构建消息
 func (r KafkaMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) *sarama.ProducerMessage {
+	timestamp := int64(sourceMessage.Timestamp)
 	return &sarama.ProducerMessage{
 		Topic: r.Topic,
 		Key:   sarama.StringEncoder(sourceMessage.Id),
@@ -48,9 +49,9 @@ func (r KafkaMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) 
 			{Key: []byte(SourceNode), Value: []byte(sourceMessage.Node)},
 			{Key: []byte(SourceFrom), Value: []byte(sourceMessage.From)},
 			{Key: []byte(SourceQos), Value: []byte(strconv.Itoa(int(sourceMessage.Qos)))},
-			{Key: []byte(SourceTimestamp), Value: []byte(strconv.FormatInt(int64(sourceMessage.Timestamp), 10))},
+			{Key: []byte(SourceTimestamp), Value: []byte(strconv.FormatInt(timestamp, 10))},
 		},
-		Timestamp: time.UnixMilli(int64(sourceMessage.Timestamp)),
+		Timestamp: time.UnixMilli(timestamp),
 	}
 }
 

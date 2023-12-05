@@ -28,16 +28,14 @@ func init() {
 			Topic:     "emqx_exhook",
 			Tag:       "exhook",
 			GroupName: "exhook",
-			Retry:     2,
 		},
 	)
 	viper.SetDefault(
 		"rabbitmqConfig",
 		RabbitmqConfig{
-			Addresses:    []string{"amqp://guest:guest@127.0.0.1"},
+			Addresses:    []string{"amqp://guest:guest@127.0.0.1:5672"},
+			ExchangeName: "amq.direct",
 			RoutingKeys:  []string{"exhook"},
-			VirtualHost:  "/",
-			ExchangeName: "emqx.exhook",
 		},
 	)
 	viper.SetDefault(
@@ -123,9 +121,6 @@ type RocketmqConfig struct {
 
 	// Rocketmq 的 分组名称
 	GroupName string `yaml:"groupName" json:"groupName"`
-
-	// Rocketmq 的 重试次数
-	Retry int `yaml:"retry" json:"retry"`
 }
 
 // RabbitmqConfig 桥接到 Rabbitmq 的配置
@@ -136,9 +131,6 @@ type RabbitmqConfig struct {
 
 	// Rocketmq RoutingKeys
 	RoutingKeys []string `yaml:"routingKeys" json:"routingKeys"`
-
-	// Rocketmq VirtualHost
-	VirtualHost string `yaml:"virtualHost" json:"virtualHost"`
 
 	// Rocketmq ExchangeName
 	ExchangeName string `yaml:"exchangeName" json:"exchangeName"`

@@ -2,33 +2,39 @@ appName: go_emqx_exhook
 port: 16565
 
 # Rocketmq、Rabbitmq、Kafka
-mqType: Kafka
+mqType: Rabbitmq
 
+# emqx 主题
 bridgeRule:
   topics:
     - "/#"
 
+# rocketmq 配置，需要提前创建 主题(emqx_exhook)
 rocketmqConfig:
   nameServer:
-    - 127.0.0.1:9876
+    - 192.168.0.188:9876
   topic: emqx_exhook
   tag: exhook
   groupName: exhook
-  retry: 2
 
+
+# rabbitmq 配置，需要提前创建 队列(exhook_queue) 并且绑定 交换机(amq.direct)
 rabbitmqConfig:
   addresses:
-    - amqp://guest:guest@127.0.0.1
-  virtualHost: /
+    - amqp://rabbit:mht123456@192.168.0.188:5672
+  exchangeName: amq.direct
   routingKeys: exhook
-  exchangeName: emqx.exhook
 
+
+# kafka 配置，需要提前创建 主题(emqx_exhook)
 kafkaConfig:
   addresses:
-    - 127.0.0.1:9092
+    - 192.168.0.188:9092
   topic: emqx_exhook
 
-## 发送方式 queue or direct ，默认 queue
+
+# 发送方式 queue or direct ，默认 queue
+# 注: rabbitmq 不支持队列发送
 sendMethod: queue
 
 queue:

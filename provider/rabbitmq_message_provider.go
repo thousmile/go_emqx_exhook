@@ -7,6 +7,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type RabbitmqMessageProvider struct {
@@ -31,6 +32,8 @@ func (r RabbitmqMessageProvider) SingleSend(message *exhook.Message) {
 	err := r.RabbitProducer.Publish(
 		message.Payload,
 		r.RoutingKeys,
+		rabbitmq.WithPublishOptionsMessageID(message.Id),
+		rabbitmq.WithPublishOptionsTimestamp(time.UnixMilli(int64(message.Timestamp))),
 		rabbitmq.WithPublishOptionsHeaders(headers),
 		rabbitmq.WithPublishOptionsExchange(r.ExchangeName),
 	)
@@ -54,7 +57,9 @@ func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook
 
 func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessageProvider {
 	url := strings.Join(rbbConf.Addresses, ",")
-	conn, err := rabbitmq.NewConn(url, rabbitmq.WithConnectionOptionsLogging)
+	conn, err := rabbitmq.NewConn(url,
+		rabbitmq.WithConnectionOptionsLogging,
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
