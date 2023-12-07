@@ -66,14 +66,25 @@ func (r RocketmqMessageProvider) buildTargetMessage(sourceMessage *exhook.Messag
 	targetMessage.WithProperty(SourceQos, strconv.Itoa(int(sourceMessage.Qos)))
 	targetMessage.WithProperty(SourceTimestamp,
 		strconv.FormatInt(int64(sourceMessage.Timestamp), 10))
+	if len(sourceMessage.Headers) > 0 {
+		for key, val := range sourceMessage.Headers {
+			targetMessage.WithProperty(key, val)
+		}
+	}
 	return targetMessage
 }
 
 func BuildRocketmqMessageProvider(rmqConf conf.RocketmqConfig) RocketmqMessageProvider {
+	var acl primitive.Credentials
+	if len(rmqConf.AccessKey) > 0 && len(rmqConf.SecretKey) > 0 {
+		acl.AccessKey = rmqConf.AccessKey
+		acl.SecretKey = rmqConf.SecretKey
+	}
 	rmqProducer, _ := rocketmq.NewProducer(
 		producer.WithNsResolver(primitive.NewPassthroughResolver(rmqConf.NameServer)),
 		producer.WithGroupName(rmqConf.GroupName),
 		producer.WithSendMsgTimeout(time.Second*1),
+		producer.WithCredentials(acl),
 	)
 	err := rmqProducer.Start()
 	if err != nil {

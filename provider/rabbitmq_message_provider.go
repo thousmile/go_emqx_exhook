@@ -52,6 +52,11 @@ func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook
 		SourceQos:       strconv.Itoa(int(sourceMessage.Qos)),
 		SourceTimestamp: strconv.FormatInt(int64(sourceMessage.Timestamp), 10),
 	}
+	if len(sourceMessage.Headers) > 0 {
+		for key, val := range sourceMessage.Headers {
+			headers[key] = val
+		}
+	}
 	return headers
 }
 

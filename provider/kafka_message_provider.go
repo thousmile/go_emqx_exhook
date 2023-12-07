@@ -39,18 +39,25 @@ func (r KafkaMessageProvider) SingleSend(message *exhook.Message) {
 // BuildTargetMessage 构建消息
 func (r KafkaMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) *sarama.ProducerMessage {
 	timestamp := int64(sourceMessage.Timestamp)
+	headers := []sarama.RecordHeader{
+		{Key: []byte(SourceId), Value: []byte(sourceMessage.Id)},
+		{Key: []byte(SourceTopic), Value: []byte(sourceMessage.Topic)},
+		{Key: []byte(SourceNode), Value: []byte(sourceMessage.Node)},
+		{Key: []byte(SourceFrom), Value: []byte(sourceMessage.From)},
+		{Key: []byte(SourceQos), Value: []byte(strconv.Itoa(int(sourceMessage.Qos)))},
+		{Key: []byte(SourceTimestamp), Value: []byte(strconv.FormatInt(timestamp, 10))},
+	}
+	if len(sourceMessage.Headers) > 0 {
+		for key, val := range sourceMessage.Headers {
+			header := sarama.RecordHeader{Key: []byte(key), Value: []byte(val)}
+			headers = append(headers, header)
+		}
+	}
 	return &sarama.ProducerMessage{
-		Topic: r.Topic,
-		Key:   sarama.StringEncoder(sourceMessage.Id),
-		Value: sarama.ByteEncoder(sourceMessage.Payload),
-		Headers: []sarama.RecordHeader{
-			{Key: []byte(SourceId), Value: []byte(sourceMessage.Id)},
-			{Key: []byte(SourceTopic), Value: []byte(sourceMessage.Topic)},
-			{Key: []byte(SourceNode), Value: []byte(sourceMessage.Node)},
-			{Key: []byte(SourceFrom), Value: []byte(sourceMessage.From)},
-			{Key: []byte(SourceQos), Value: []byte(strconv.Itoa(int(sourceMessage.Qos)))},
-			{Key: []byte(SourceTimestamp), Value: []byte(strconv.FormatInt(timestamp, 10))},
-		},
+		Topic:     r.Topic,
+		Key:       sarama.StringEncoder(sourceMessage.Id),
+		Value:     sarama.ByteEncoder(sourceMessage.Payload),
+		Headers:   headers,
 		Timestamp: time.UnixMilli(timestamp),
 	}
 }

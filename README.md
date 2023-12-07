@@ -7,7 +7,7 @@ appName: go_emqx_exhook
 port: 16565
 
 # Rocketmq、Rabbitmq、Kafka
-mqType: Rabbitmq
+mqType: Rocketmq
 
 # emqx 主题
 bridgeRule:
@@ -21,6 +21,8 @@ rocketmqConfig:
   topic: emqx_exhook
   tag: exhook
   groupName: exhook
+  #accessKey: exhook
+  #secretKey: exhook
 
 
 # rabbitmq 配置，需要提前创建 交换机 并且绑定队列
@@ -29,7 +31,6 @@ rabbitmqConfig:
     - amqp://rabbit:mht123456@192.168.0.188:5672
   exchangeName: emqx_exhook
   routingKeys: exhook
-  virtualHost: /
 
 
 # kafka 配置，需要提前创建 主题
@@ -54,7 +55,7 @@ queue:
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
   -v /etc/localtime:/etc/localtime:ro \
-  --restart=always thousmile/go_emqx_exhook:1.2
+  --restart=always thousmile/go_emqx_exhook:1.3
 ```
 
 vim docker-compose.yml
@@ -63,7 +64,7 @@ vim docker-compose.yml
 version: '3'
 
 networks:
-  hello-net1:
+  app-net1:
     ipam:
       config:
         - subnet: 172.19.0.0/16
@@ -71,7 +72,7 @@ networks:
 
 services:
   go_emqx_exhook:
-    image: thousmile/go_emqx_exhook:1.2
+    image: thousmile/go_emqx_exhook:1.3
     container_name: go_emqx_exhook
     ports:
       - "16565:16565"
@@ -81,8 +82,11 @@ services:
     privileged: true
     restart: always
     networks:
-      hello-net1:
-        ipv4_address: 172.19.0.168
+      app-net1:
+    deploy:
+      resources:
+        limits:
+          memory: 258m
 
 ```
 
@@ -111,17 +115,39 @@ goreleaser --snapshot --skip-publish --clean
 
 
 构建docker镜像
-docker build -t go_emqx_exhook:1.2 ./
+docker build -t go_emqx_exhook:1.3 ./
 
 
 运行docker容器
-docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.2
+docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.3
 
 
 ## 指定配置文件
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \ 
   -v /etc/localtime:/etc/localtime:ro \ 
-  --restart=always thousmile/go_emqx_exhook:1.2
+  --restart=always thousmile/go_emqx_exhook:1.3
 
 ```
+
+### 消费者 获取mqtt的属性或者Header
+
+| 属性              | 描述                     |
+|-----------------|------------------------|
+| sourceId        | mqtt 消息ID              |
+| sourceTopic     | mqtt 主题                |
+| sourceNode      | emqx 节点名称              |
+| sourceFrom      | emqx 来自哪个mqtt客户端       |
+| sourceQos       | mqtt qos               |
+| sourceTimestamp | 消息时间戳                  |
+| protocol        | 此消息协议(emqx默认Header)    |
+| peerhost        | 此消息生产者IP(emqx默认Header) |
+
+
+Rabbitmq:
+![](./images/20231207160607.png)
+
+
+Kafka:
+![](./images/20231207164403.png)
+

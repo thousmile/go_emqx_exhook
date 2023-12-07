@@ -1,8 +1,8 @@
 appName: go_emqx_exhook
 port: 16565
 
-# Rocketmq、Rabbitmq、Kafka
-mqType: Rabbitmq
+# Rocketmq、Kafka、Rabbitmq
+mqType: Kafka
 
 # emqx 主题
 bridgeRule:
@@ -36,6 +36,7 @@ kafkaConfig:
 # 发送方式 queue or direct ，默认 queue
 # 注: rabbitmq 不支持队列发送
 sendMethod: queue
+
 
 queue:
   batchSize: 100

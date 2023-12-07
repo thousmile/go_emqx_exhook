@@ -65,7 +65,7 @@ func init() {
 		log.Panicf("Fatal error config file: %v \n", err)
 	}
 	if err := viper.Unmarshal(&Config); err != nil {
-		log.Panicf("Fatal error config file: %v \n", err)
+		log.Panicf("Fatal error config file: %v \n", err.Error())
 	}
 }
 
@@ -121,6 +121,12 @@ type RocketmqConfig struct {
 
 	// Rocketmq 的 分组名称
 	GroupName string `yaml:"groupName" json:"groupName"`
+
+	// 阿里云 Rocketmq 的 accessKey
+	AccessKey string `yaml:"accessKey" json:"accessKey"`
+
+	// 阿里云 Rocketmq 的 secretKey
+	SecretKey string `yaml:"secretKey" json:"secretKey"`
 }
 
 // RabbitmqConfig 桥接到 Rabbitmq 的配置
