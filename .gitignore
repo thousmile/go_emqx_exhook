@@ -1,5 +1,7 @@
 dist/
 
+go.sum
+
 HELP.md
 target/
 logs/
