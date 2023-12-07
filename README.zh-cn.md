@@ -1,6 +1,4 @@
-## Quick Start
-
-### [中文文档](README.zh-cn.md)
+## 快速启动
 
 vim /etc/go_emqx_exhook/config.yaml
 
@@ -8,15 +6,15 @@ vim /etc/go_emqx_exhook/config.yaml
 appName: go_emqx_exhook
 port: 16565
 
-# Rocketmq or Rabbitmq or Kafka
+# mq类型: Rocketmq、Rabbitmq、Kafka
 mqType: Rocketmq
 
-# emqx topic
+# emqx 主题
 bridgeRule:
   topics:
     - "/#"
 
-# rocketmq configuration, you need to create a topic in advance
+# rocketmq 配置，需要提前创建 主题
 rocketmqConfig:
   nameServer:
     - 192.168.0.188:9876
@@ -27,7 +25,7 @@ rocketmqConfig:
   #secretKey: exhook
 
 
-# rabbitmq configuration, you need to create a switch in advance and bind a queue
+# rabbitmq 配置，需要提前创建 交换机 并且绑定队列
 rabbitmqConfig:
   addresses:
     - amqp://rabbit:mht123456@192.168.0.188:5672
@@ -35,26 +33,25 @@ rabbitmqConfig:
   routingKeys: exhook
 
 
-# kafka configuration, you need to create a topic in advance
+# kafka 配置，需要提前创建 主题
 kafkaConfig:
   addresses:
     - 192.168.0.188:9092
   topic: emqx_exhook
 
 
-# message send method "queue or direct", default: queue
-# queue: after receiving the message, enter the queue and send it in batch when the queue conditions are met.
-# direct: send immediately after receiving the message
-# info: rabbitmq queue send is not supported
+# 发送方式 queue 或者 direct ，默认 queue
+# queue: 收到消息后，转入队列，当队列内的消息数量等于阈值，批量发送到mq中
+# direct: 收到消息后，立即发送到mq中
+# 注: rabbitmq 不支持队列发送
 sendMethod: queue
 
-
-# queue configuration batchSize and lingerTime only satisfy one of them
+# 队列的配置， batchSize 和 lingerTime 只要满足一个，就将消息批量发送到mq中
 queue:
-  # when the number of messages in the queue reaches 100, batch send
+  # 当消息数量达到100条是，批量发送到mq中
   batchSize: 100
   workers: 2
-  # after receiving the message, regardless of whether the number of messages in the queue is satisfied, it will be sent within 1 second.
+  # 收到消息后，无论队列中的消息数量是否满足，都会在1秒内发送出去。
   lingerTime: 1
 
 ```
@@ -102,35 +99,35 @@ services:
 docker compose up -d go_emqx_exhook
 ```
 
-## binary
+## 本地运行
 
-[download binary file](https://github.com/thousmile/go_emqx_exhook/releases)
-after decompression, create a new config.yaml configuration file in the same directory as the binary file
+[根据自己的操作系统，下载相应的 可执行文件 ](https://github.com/thousmile/go_emqx_exhook/releases)
+解压缩后，在 可执行文件 同级目录下，新建 config.yaml 配置文件
 
-## EMQX Dashboard > ExHook
+## 在 EMQX Dashboard > ExHook
 
-![](./images/20231207180925.png)
+![](./images/20230728154744.png)
 
-### based on this project
+### 二次开发
 
 ```shell
-# proto generate golang code
+## proto 生成 go 代码
 protoc --go_out=. --go-grpc_out=. proto/*.proto
 
 
-# package binary
+## golang 打包可执行文件
 goreleaser --snapshot --skip-publish --clean
 
 
-# build docker image
+## 构建docker镜像
 docker build -t go_emqx_exhook:1.3 ./
 
 
-# run docker container
+## 运行docker容器
 docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.3
 
 
-## custom configuration file
+## 指定配置文件
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \ 
   -v /etc/localtime:/etc/localtime:ro \ 
@@ -138,18 +135,18 @@ docker run -d --name go_emqx_exhook -p 16565:16565 \
 
 ```
 
-### consumer get mqtt attributes or Header
+### 消费者 获取mqtt的属性或者Header
 
-| attributes name | description              |
-|-----------------|--------------------------|
-| sourceId        | mqtt message Id          |
-| sourceTopic     | mqtt topic               |
-| sourceNode      | emqx node name           |
-| sourceFrom      | emqx from mqtt client id |
-| sourceQos       | mqtt qos                 |
-| sourceTimestamp | message timestamp        |
-| protocol        | message protocol         |
-| peerhost        | producer ip              |
+| 属性              | 描述                     |
+|-----------------|------------------------|
+| sourceId        | mqtt 消息ID              |
+| sourceTopic     | mqtt 主题                |
+| sourceNode      | emqx 节点名称              |
+| sourceFrom      | emqx 来自哪个mqtt客户端       |
+| sourceQos       | mqtt qos               |
+| sourceTimestamp | 消息时间戳                  |
+| protocol        | 此消息协议(emqx默认Header)    |
+| peerhost        | 此消息生产者IP(emqx默认Header) |
 
 
 
