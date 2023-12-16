@@ -1,7 +1,9 @@
 package conf
 
 import (
+	"errors"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 	"log"
 )
 
@@ -62,11 +64,16 @@ func init() {
 	viper.AddConfigPath("../")                   // optionally look for config in the working directory
 	viper.AddConfigPath("./conf/")               // 还可以在工作目录中搜索配置文件
 	if err := viper.ReadInConfig(); err != nil { // Handle errors reading the config file
-		log.Panicf("Fatal error config file: %v \n", err)
+		var configFileNotFoundError viper.ConfigFileNotFoundError
+		if !errors.As(err, &configFileNotFoundError) {
+			log.Panicf("viper ReadInConfig error : %v \n", err)
+		}
 	}
 	if err := viper.Unmarshal(&Config); err != nil {
-		log.Panicf("Fatal error config file: %v \n", err.Error())
+		log.Panicf("viper Unmarshal error : %v \n", err.Error())
 	}
+	out, _ := yaml.Marshal(Config)
+	log.Printf("app config : \n%s\n", string(out))
 }
 
 type ServerConfig struct {

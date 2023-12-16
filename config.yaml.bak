@@ -2,7 +2,7 @@ appName: go_emqx_exhook
 port: 16565
 
 # Rocketmq、Kafka、Rabbitmq
-mqType: Kafka
+mqType: Rocketmq
 
 # emqx 主题
 bridgeRule:
