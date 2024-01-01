@@ -45,6 +45,17 @@ func init() {
 		KafkaConfig{
 			Addresses: []string{"127.0.0.1:9092"},
 			Topic:     "emqx_exhook",
+			Sasl: KafkaSasl{
+				Enable:        false,
+				User:          "exhook",
+				Password:      "exhook",
+				Algorithm:     "plain",
+				UseTLS:        false,
+				TlsSkipVerify: false,
+				CaFile:        "certs/ca/ca.crt",
+				CertFile:      "certs/client/client.crt",
+				KeyFile:       "certs/client/client.key",
+			},
 		},
 	)
 	viper.SetDefault("sendMethod", "queue")
@@ -155,8 +166,41 @@ type KafkaConfig struct {
 	// Kafka Addresses
 	Addresses []string `yaml:"addresses" json:"addresses"`
 
-	// Rocketmq 的主题
+	// Kafka 的主题
 	Topic string `yaml:"topic" json:"topic"`
+
+	// Kafka SASL 配置
+	Sasl KafkaSasl `yaml:"sasl" json:"sasl"`
+}
+
+// KafkaSasl 配置
+type KafkaSasl struct {
+	// 启用
+	Enable bool `yaml:"enable" json:"enable"`
+
+	// 用户名
+	User string `yaml:"user" json:"user"`
+
+	// 密码
+	Password string `yaml:"password" json:"password"`
+
+	// The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
+	Algorithm string `yaml:"algorithm" json:"algorithm"`
+
+	// Use TLS to communicate with the cluster
+	UseTLS bool `yaml:"useTLS" json:"useTLS"`
+
+	// Whether to skip TLS server cert verification
+	TlsSkipVerify bool `yaml:"tlsSkipVerify" json:"tlsSkipVerify"`
+
+	// The optional certificate authority file for TLS client authentication
+	CaFile string `yaml:"caFile" json:"caFile"`
+
+	// The optional certificate file for client authentication
+	CertFile string `yaml:"certFile" json:"certFile"`
+
+	// The optional key file for client authentication
+	KeyFile string `yaml:"keyFile" json:"keyFile"`
 }
 
 // Queue 配置

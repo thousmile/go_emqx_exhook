@@ -1,11 +1,17 @@
 package provider
 
 import (
+	"crypto/sha256"
+	"crypto/sha512"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"github.com/IBM/sarama"
+	"github.com/xdg-go/scram"
 	"go_emqx_exhook/conf"
 	"go_emqx_exhook/emqx.io/grpc/exhook"
 	"log"
+	"os"
 	"strconv"
 	"time"
 )
@@ -67,6 +73,28 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 	config.Producer.RequiredAcks = sarama.WaitForAll          //ACK,发送完数据需要leader和follow都确认
 	config.Producer.Partitioner = sarama.NewRandomPartitioner //分区,新选出一个分区
 	config.Producer.Return.Successes = true                   //确认,成功交付的消息将在success channel返回
+	// 启用安全认证
+	if kafkaConf.Sasl.Enable {
+		sasl := kafkaConf.Sasl
+		config.Net.SASL.Enable = true
+		config.Net.SASL.User = sasl.User
+		config.Net.SASL.Password = sasl.Password
+		config.Net.SASL.Handshake = true
+		switch sasl.Algorithm {
+		case "sha512":
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient { return &XDGSCRAMClient{HashGeneratorFcn: SHA512} }
+			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA512
+		case "sha256":
+			config.Net.SASL.SCRAMClientGeneratorFunc = func() sarama.SCRAMClient { return &XDGSCRAMClient{HashGeneratorFcn: SHA256} }
+			config.Net.SASL.Mechanism = sarama.SASLTypeSCRAMSHA256
+		default:
+			config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
+		}
+		if sasl.UseTLS {
+			config.Net.TLS.Enable = true
+			config.Net.TLS.Config = createTLSConfiguration(sasl)
+		}
+	}
 	client, err := sarama.NewSyncProducer(kafkaConf.Addresses, config)
 	if err != nil {
 		fmt.Println("Producer error", err)
@@ -76,4 +104,57 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 		KafkaProducer: client,
 	}
 	return p1
+}
+
+func createTLSConfiguration(sasl conf.KafkaSasl) (t *tls.Config) {
+	t = &tls.Config{
+		InsecureSkipVerify: sasl.TlsSkipVerify,
+	}
+	if sasl.CertFile != "" && sasl.KeyFile != "" && sasl.CaFile != "" {
+		cert, err := tls.LoadX509KeyPair(sasl.CertFile, sasl.KeyFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCert, err := os.ReadFile(sasl.CaFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		t = &tls.Config{
+			Certificates:       []tls.Certificate{cert},
+			RootCAs:            caCertPool,
+			InsecureSkipVerify: sasl.TlsSkipVerify,
+		}
+	}
+	return t
+}
+
+var (
+	SHA256 scram.HashGeneratorFcn = sha256.New
+	SHA512 scram.HashGeneratorFcn = sha512.New
+)
+
+type XDGSCRAMClient struct {
+	*scram.Client
+	*scram.ClientConversation
+	scram.HashGeneratorFcn
+}
+
+func (x *XDGSCRAMClient) Begin(userName, password, authzID string) (err error) {
+	x.Client, err = x.HashGeneratorFcn.NewClient(userName, password, authzID)
+	if err != nil {
+		return err
+	}
+	x.ClientConversation = x.Client.NewConversation()
+	return nil
+}
+
+func (x *XDGSCRAMClient) Step(challenge string) (response string, err error) {
+	response, err = x.ClientConversation.Step(challenge)
+	return
+}
+
+func (x *XDGSCRAMClient) Done() bool {
+	return x.ClientConversation.Done()
 }

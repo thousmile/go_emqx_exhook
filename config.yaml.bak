@@ -31,6 +31,10 @@ kafkaConfig:
   addresses:
     - 192.168.0.188:9092
   topic: emqx_exhook
+  sasl:
+    enable: true
+    user: admin
+    password: 123456
 
 
 # 发送方式 queue or direct ，默认 queue
