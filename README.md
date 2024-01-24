@@ -40,6 +40,10 @@ kafkaConfig:
   addresses:
     - 192.168.0.188:9092
   topic: emqx_exhook
+#  sasl:
+#    enable: true
+#    user: admin
+#    password: 123456
 
 
 # message send method "queue or direct", default: queue
@@ -63,7 +67,7 @@ queue:
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
   -v /etc/localtime:/etc/localtime:ro \
-  --restart=always thousmile/go_emqx_exhook:1.3
+  --restart=always thousmile/go_emqx_exhook:1.4
 ```
 
 vim docker-compose.yml
@@ -80,7 +84,7 @@ networks:
 
 services:
   go_emqx_exhook:
-    image: thousmile/go_emqx_exhook:1.3
+    image: thousmile/go_emqx_exhook:1.4
     container_name: go_emqx_exhook
     ports:
       - "16565:16565"
@@ -123,18 +127,18 @@ goreleaser --snapshot --skip-publish --clean
 
 
 # build docker image
-docker build -t go_emqx_exhook:1.3 ./
+docker build -t go_emqx_exhook:1.4 ./
 
 
 # run docker container
-docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.3
+docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.4
 
 
 ## custom configuration file
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \ 
   -v /etc/localtime:/etc/localtime:ro \ 
-  --restart=always thousmile/go_emqx_exhook:1.3
+  --restart=always thousmile/go_emqx_exhook:1.4
 
 ```
 
