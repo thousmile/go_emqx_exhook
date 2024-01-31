@@ -35,6 +35,10 @@ func main() {
 		kafka := provider.BuildKafkaMessageProvider(appConf.KafkaConfig)
 		defer connClose(kafka.KafkaProducer)
 		msgProvider = kafka
+	} else if strings.EqualFold(appConf.MqType, "Redis") || strings.EqualFold(appConf.MqType, "redis") {
+		redisMq := provider.BuildRedisMessageProvider(appConf.RedisConfig)
+		defer connClose(redisMq.RedisClient)
+		msgProvider = redisMq
 	} else {
 		rmq := provider.BuildRocketmqMessageProvider(appConf.RocketmqConfig)
 		defer func(p rocketmq.Producer) {

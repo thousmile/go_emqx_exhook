@@ -1,7 +1,7 @@
 appName: go_emqx_exhook
 port: 16565
 
-# Rocketmq、Kafka、Rabbitmq
+# Rocketmq、Kafka、Rabbitmq、Redis
 mqType: Rocketmq
 
 # emqx 主题
@@ -35,6 +35,17 @@ kafkaConfig:
     enable: true
     user: admin
     password: 123456
+
+
+# redis 配置，需要提前创建 stream (emqx_exhook)
+redisConfig:
+  addresses:
+    - 127.0.0.1:6379
+  streamName: emqx_exhook
+  db: 0
+  username: redis
+  password: redis123
+  masterName: mymaster
 
 
 # 发送方式 queue or direct ，默认 queue

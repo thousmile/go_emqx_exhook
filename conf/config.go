@@ -38,6 +38,10 @@ func init() {
 			Addresses:    []string{"amqp://guest:guest@127.0.0.1:5672"},
 			ExchangeName: "amq.direct",
 			RoutingKeys:  []string{"exhook"},
+			UseTLS:       false,
+			CaFile:       "certs/ca/ca.crt",
+			CertFile:     "certs/client/client.crt",
+			KeyFile:      "certs/client/client.key",
 		},
 	)
 	viper.SetDefault(
@@ -56,6 +60,15 @@ func init() {
 				CertFile:      "certs/client/client.crt",
 				KeyFile:       "certs/client/client.key",
 			},
+		},
+	)
+	viper.SetDefault(
+		"redisConfig",
+		RedisConfig{
+			Addresses:     []string{"127.0.0.1:6379"},
+			StreamName:    "emqx_exhook",
+			PayloadFormat: "json",
+			DB:            0,
 		},
 	)
 	viper.SetDefault("sendMethod", "queue")
@@ -100,7 +113,7 @@ type ServerConfig struct {
 	// 桥接规则
 	BridgeRule BridgeRule `yaml:"bridgeRule" json:"bridgeRule"`
 
-	// mq 类型 Rocketmq、Rabbitmq、Kafka
+	// mq 类型 Rocketmq、Rabbitmq、Kafka、Redis
 	MqType string `yaml:"mqType" json:"mqType"`
 
 	// Rocketmq 配置
@@ -111,6 +124,9 @@ type ServerConfig struct {
 
 	// Kafka 配置
 	KafkaConfig KafkaConfig `yaml:"kafkaConfig" json:"kafkaConfig"`
+
+	// Redis 配置
+	RedisConfig RedisConfig `yaml:"redisConfig" json:"redisConfig"`
 
 	// SendMethod 发送方式。默认是队列，queue , direct
 	SendMethod string `yaml:"sendMethod" json:"sendMethod"`
@@ -158,6 +174,18 @@ type RabbitmqConfig struct {
 
 	// Rocketmq ExchangeName
 	ExchangeName string `yaml:"exchangeName" json:"exchangeName"`
+
+	// Use TLS to communicate with the cluster
+	UseTLS bool `yaml:"useTLS" json:"useTLS"`
+
+	// The optional certificate authority file for TLS client authentication
+	CaFile string `yaml:"caFile" json:"caFile"`
+
+	// The optional certificate file for client authentication
+	CertFile string `yaml:"certFile" json:"certFile"`
+
+	// The optional key file for client authentication
+	KeyFile string `yaml:"keyFile" json:"keyFile"`
 }
 
 // KafkaConfig 桥接到 Kafka 的配置
@@ -201,6 +229,35 @@ type KafkaSasl struct {
 
 	// The optional key file for client authentication
 	KeyFile string `yaml:"keyFile" json:"keyFile"`
+}
+
+type RedisConfig struct {
+	// redis 地址。默认: 127.0.0.1:6379
+	Addresses []string `yaml:"addresses" json:"addresses"`
+
+	// redis stream
+	StreamName string `yaml:"streamName" json:"streamName"`
+
+	// 格式
+	PayloadFormat string `yaml:"payloadFormat" json:"payloadFormat"`
+
+	// 用户名，默认: 空
+	Username string `yaml:"username" json:"username"`
+
+	// 密码，默认: 空
+	Password string `yaml:"password" json:"password"`
+
+	// 库索引，默认: 0
+	DB int `yaml:"db" json:"db"`
+
+	// Sentinel 模式。
+	MasterName string `yaml:"masterName" json:"masterName"`
+
+	// Sentinel username。
+	SentinelUsername string `yaml:"sentinelUsername" json:"sentinelUsername"`
+
+	// Sentinel password
+	SentinelPassword string `yaml:"sentinelPassword" json:"sentinelPassword"`
 }
 
 // Queue 配置

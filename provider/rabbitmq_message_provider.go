@@ -1,10 +1,13 @@
 package provider
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"github.com/wagslane/go-rabbitmq"
 	"go_emqx_exhook/conf"
 	"go_emqx_exhook/emqx.io/grpc/exhook"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -62,8 +65,12 @@ func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook
 
 func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessageProvider {
 	url := strings.Join(rbbConf.Addresses, ",")
+	t := createRabbitTLS(rbbConf)
 	conn, err := rabbitmq.NewConn(url,
 		rabbitmq.WithConnectionOptionsLogging,
+		rabbitmq.WithConnectionOptionsConfig(
+			rabbitmq.Config{TLSClientConfig: t},
+		),
 	)
 	if err != nil {
 		log.Fatal(err)
@@ -83,4 +90,25 @@ func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessagePr
 		RabbitProducer: publisher,
 	}
 	return p1
+}
+
+func createRabbitTLS(sasl conf.RabbitmqConfig) (t *tls.Config) {
+	t = &tls.Config{}
+	if sasl.CertFile != "" && sasl.KeyFile != "" && sasl.CaFile != "" {
+		cert, err := tls.LoadX509KeyPair(sasl.CertFile, sasl.KeyFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCert, err := os.ReadFile(sasl.CaFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+		t = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			RootCAs:      caCertPool,
+		}
+	}
+	return t
 }

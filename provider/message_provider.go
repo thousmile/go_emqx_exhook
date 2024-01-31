@@ -9,6 +9,7 @@ const (
 	SourceFrom      = "sourceFrom"
 	SourceQos       = "sourceQos"
 	SourceTimestamp = "sourceTimestamp"
+	SourcePayload   = "payload"
 )
 
 // MessageProvider 抽象出来的 消息提供者

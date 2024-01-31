@@ -1,0 +1,11 @@
+# Rocketmq、Kafka、Rabbitmq、Redis
+mqType: Redis
+
+redisConfig:
+  addresses:
+    - 127.0.0.1:6379
+  streamName: emqx_exhook
+  ## json or proto3  default: json
+  payloadFormat: json
+  db: 0
+  password: redis123456
