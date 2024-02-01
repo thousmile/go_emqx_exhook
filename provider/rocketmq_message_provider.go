@@ -44,7 +44,7 @@ func (r RocketmqMessageProvider) SingleSend(message *exhook.Message) {
 		targetMessages,
 	)
 	if err != nil {
-		log.Printf("[direct] send message error: %s\n", err)
+		log.Printf("[direct] rocketmq send message error: %s\n", err)
 	}
 }
 
@@ -56,9 +56,6 @@ func (r RocketmqMessageProvider) buildTargetMessage(sourceMessage *exhook.Messag
 	}
 	targetMessage.WithKeys([]string{sourceMessage.Id})
 	targetMessage.WithTag(r.Tag)
-	for key, val := range sourceMessage.GetHeaders() {
-		targetMessage.WithProperty(key, val)
-	}
 	targetMessage.WithProperty(SourceId, sourceMessage.Id)
 	targetMessage.WithProperty(SourceTopic, sourceMessage.Topic)
 	targetMessage.WithProperty(SourceNode, sourceMessage.Node)

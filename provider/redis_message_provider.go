@@ -13,8 +13,6 @@ import (
 type RedisMessageProvider struct {
 	// 目标主题
 	StreamName string
-	//
-	PayloadFormat string
 	// redis 提供者
 	RedisClient redis.UniversalClient
 }
@@ -29,7 +27,7 @@ func (r RedisMessageProvider) SingleSend(message *exhook.Message) {
 	targetMessages := r.buildTargetMessage(message)
 	err := r.RedisClient.XAdd(context.Background(), targetMessages).Err()
 	if err != nil {
-		log.Printf("[direct] send message error: %s\n", err)
+		log.Printf("[direct] redis send message error: %s\n", err)
 	}
 }
 
@@ -58,8 +56,8 @@ func BuildRedisMessageProvider(redisConf conf.RedisConfig) RedisMessageProvider 
 	options := redis.UniversalOptions{
 		Addrs:        redisConf.Addresses,
 		DB:           redisConf.DB,
-		WriteTimeout: time.Second * 1,
-		ReadTimeout:  time.Second * 1,
+		WriteTimeout: time.Second * 2,
+		ReadTimeout:  time.Second * 2,
 		DialTimeout:  time.Second * 3,
 		PoolSize:     4,
 	}
@@ -80,8 +78,7 @@ func BuildRedisMessageProvider(redisConf conf.RedisConfig) RedisMessageProvider 
 	}
 	client := redis.NewUniversalClient(&options)
 	return RedisMessageProvider{
-		StreamName:    redisConf.StreamName,
-		PayloadFormat: redisConf.PayloadFormat,
-		RedisClient:   client,
+		StreamName:  redisConf.StreamName,
+		RedisClient: client,
 	}
 }

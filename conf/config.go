@@ -65,10 +65,9 @@ func init() {
 	viper.SetDefault(
 		"redisConfig",
 		RedisConfig{
-			Addresses:     []string{"127.0.0.1:6379"},
-			StreamName:    "emqx_exhook",
-			PayloadFormat: "json",
-			DB:            0,
+			Addresses:  []string{"127.0.0.1:6379"},
+			StreamName: "emqx_exhook",
+			DB:         0,
 		},
 	)
 	viper.SetDefault("sendMethod", "queue")
@@ -237,9 +236,6 @@ type RedisConfig struct {
 
 	// redis stream
 	StreamName string `yaml:"streamName" json:"streamName"`
-
-	// 格式
-	PayloadFormat string `yaml:"payloadFormat" json:"payloadFormat"`
 
 	// 用户名，默认: 空
 	Username string `yaml:"username" json:"username"`

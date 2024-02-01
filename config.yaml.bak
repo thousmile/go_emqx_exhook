@@ -43,9 +43,11 @@ redisConfig:
     - 127.0.0.1:6379
   streamName: emqx_exhook
   db: 0
-  username: redis
-  password: redis123
+  username: redis123
+  password: redis123456
   masterName: mymaster
+  sentinelUsername: sentinel123456
+  sentinelPassword: sentinel123456
 
 
 # 发送方式 queue or direct ，默认 queue

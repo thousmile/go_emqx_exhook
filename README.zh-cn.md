@@ -6,7 +6,7 @@ vim /etc/go_emqx_exhook/config.yaml
 appName: go_emqx_exhook
 port: 16565
 
-# mq类型: Rocketmq、Rabbitmq、Kafka
+# mq类型: Rocketmq、Kafka、Rabbitmq、Redis
 mqType: Rocketmq
 
 # emqx 主题
@@ -42,6 +42,19 @@ kafkaConfig:
 #    enable: true
 #    user: admin
 #    password: 123456
+
+
+# redis 配置，无需创建 stream 
+redisConfig:
+  addresses:
+    - 127.0.0.1:6379
+  streamName: emqx_exhook
+  db: 0
+  username: redis123
+  password: redis123456
+  masterName: mymaster
+  sentinelUsername: sentinel123456
+  sentinelPassword: sentinel123456
 
 
 # 发送方式 queue 或者 direct ，默认 queue

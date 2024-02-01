@@ -8,7 +8,7 @@ vim /etc/go_emqx_exhook/config.yaml
 appName: go_emqx_exhook
 port: 16565
 
-# Rocketmq or Rabbitmq or Kafka
+# Rocketmq or Rabbitmq or Kafka or Redis
 mqType: Rocketmq
 
 # emqx topic
@@ -44,6 +44,19 @@ kafkaConfig:
 #    enable: true
 #    user: admin
 #    password: 123456
+
+
+# redis configuration
+redisConfig:
+  addresses:
+    - 127.0.0.1:6379
+  streamName: emqx_exhook
+  db: 0
+  username: redis123
+  password: redis123456
+  masterName: mymaster
+  sentinelUsername: sentinel123456
+  sentinelPassword: sentinel123456
 
 
 # message send method "queue or direct", default: queue
