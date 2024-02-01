@@ -37,7 +37,7 @@ kafkaConfig:
     password: 123456
 
 
-# redis 配置，需要提前创建 stream (emqx_exhook)
+# redis 配置
 redisConfig:
   addresses:
     - 127.0.0.1:6379
@@ -51,7 +51,7 @@ redisConfig:
 
 
 # 发送方式 queue or direct ，默认 queue
-# 注: rabbitmq 不支持队列发送
+# 注: redis 和 rabbitmq 不支持队列发送
 sendMethod: queue
 
 

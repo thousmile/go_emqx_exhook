@@ -60,7 +60,7 @@ redisConfig:
 # 发送方式 queue 或者 direct ，默认 queue
 # queue: 收到消息后，转入队列，当队列内的消息数量等于阈值，批量发送到mq中
 # direct: 收到消息后，立即发送到mq中
-# 注: rabbitmq 不支持队列发送
+# 注: rabbitmq 和 redis 不支持队列发送
 sendMethod: queue
 
 # 队列的配置， batchSize 和 lingerTime 只要满足一个，就将消息批量发送到mq中
@@ -77,7 +77,7 @@ queue:
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
   -v /etc/localtime:/etc/localtime:ro \
-  --restart=always thousmile/go_emqx_exhook:1.4
+  --restart=always thousmile/go_emqx_exhook:1.5
 ```
 
 vim docker-compose.yml
@@ -94,7 +94,7 @@ networks:
 
 services:
   go_emqx_exhook:
-    image: thousmile/go_emqx_exhook:1.4
+    image: thousmile/go_emqx_exhook:1.5
     container_name: go_emqx_exhook
     ports:
       - "16565:16565"
@@ -137,18 +137,18 @@ goreleaser --snapshot --skip-publish --clean
 
 
 ## 构建docker镜像
-docker build -t go_emqx_exhook:1.4 ./
+docker build -t go_emqx_exhook:1.5 ./
 
 
 ## 运行docker容器
-docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.4
+docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.5
 
 
 ## 指定配置文件
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \ 
   -v /etc/localtime:/etc/localtime:ro \ 
-  --restart=always thousmile/go_emqx_exhook:1.4
+  --restart=always thousmile/go_emqx_exhook:1.5
 
 ```
 
@@ -166,6 +166,9 @@ docker run -d --name go_emqx_exhook -p 16565:16565 \
 | peerhost        | 此消息生产者IP(emqx默认Header) |
 
 
+
+Redis:
+![](./images/20240201103222.png)
 
 Rabbitmq:
 ![](./images/20231207160607.png)

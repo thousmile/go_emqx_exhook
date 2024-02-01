@@ -62,7 +62,7 @@ redisConfig:
 # message send method "queue or direct", default: queue
 # queue: after receiving the message, enter the queue and send it in batch when the queue conditions are met.
 # direct: send immediately after receiving the message
-# info: rabbitmq queue send is not supported
+# info: Rabbitmq and Redis do not support queue
 sendMethod: queue
 
 
@@ -80,7 +80,7 @@ queue:
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
   -v /etc/localtime:/etc/localtime:ro \
-  --restart=always thousmile/go_emqx_exhook:1.4
+  --restart=always thousmile/go_emqx_exhook:1.5
 ```
 
 vim docker-compose.yml
@@ -97,7 +97,7 @@ networks:
 
 services:
   go_emqx_exhook:
-    image: thousmile/go_emqx_exhook:1.4
+    image: thousmile/go_emqx_exhook:1.5
     container_name: go_emqx_exhook
     ports:
       - "16565:16565"
@@ -140,18 +140,18 @@ goreleaser --snapshot --skip-publish --clean
 
 
 # build docker image
-docker build -t go_emqx_exhook:1.4 ./
+docker build -t go_emqx_exhook:1.5 ./
 
 
 # run docker container
-docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.4
+docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.5
 
 
 ## custom configuration file
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \ 
   -v /etc/localtime:/etc/localtime:ro \ 
-  --restart=always thousmile/go_emqx_exhook:1.4
+  --restart=always thousmile/go_emqx_exhook:1.5
 
 ```
 
@@ -169,6 +169,9 @@ docker run -d --name go_emqx_exhook -p 16565:16565 \
 | peerhost        | producer ip              |
 
 
+
+Redis:
+![](./images/20240201103222.png)
 
 Rabbitmq:
 ![](./images/20231207160607.png)

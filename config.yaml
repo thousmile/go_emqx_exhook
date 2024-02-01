@@ -3,10 +3,10 @@ mqType: Redis
 
 bridgeRule:
   topics:
-    - "/hello/test"
+    - "/#"
 
 redisConfig:
   addresses:
     - 192.168.0.188:6379
   streamName: emqx_exhook
-  db: 2
+  db: 0
