@@ -11,7 +11,7 @@ services:
 
 
   kafka3-sasl:
-    image: bitnami/kafka:3.2.3-debian-11-r227
+    image: bitnami/kafka:3.2.3-debian-11-r232
     container_name: kafka3
     ports:
       - "9092:9092"
@@ -22,7 +22,7 @@ services:
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
       - KAFKA_CFG_LISTENERS=SASL_PLAINTEXT://:9092,CONTROLLER://:9093
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT
-      - KAFKA_CFG_ADVERTISED_LISTENERS=SASL_PLAINTEXT://192.168.249.128:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=SASL_PLAINTEXT://192.168.0.188:9092
 
       - KAFKA_CLIENT_USERS=admin
       - KAFKA_CLIENT_PASSWORDS=123456
@@ -44,8 +44,10 @@ services:
         limits:
           memory: 1g
 
+
+
   kafka3-ssl:
-    image: bitnami/kafka:3.2.3-debian-11-r227
+    image: bitnami/kafka:3.2.3-debian-11-r232
     container_name: kafka3-ssl
     ports:
       - "9092:9092"
@@ -55,23 +57,23 @@ services:
       - KAFKA_CFG_PROCESS_ROLES=controller,broker
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka3-ssl:9093
       - KAFKA_CFG_LISTENERS=SASL_SSL://:9092,CONTROLLER://:9093
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:SASL_SSL,SASL_SSL:SASL_SSL
-      - KAFKA_CFG_ADVERTISED_LISTENERS=SASL_SSL://:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+      - KAFKA_CFG_ADVERTISED_LISTENERS=SASL_SSL://192.168.0.188:9092
       - KAFKA_CLIENT_USERS=admin
-      - KAFKA_CLIENT_PASSWORDS=123456
+      - KAFKA_CLIENT_PASSWORDS=admin123456
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
       - KAFKA_CFG_SASL_MECHANISM_CONTROLLER_PROTOCOL=PLAIN
       - KAFKA_CONTROLLER_USER=admin
-      - KAFKA_CONTROLLER_PASSWORD=123456
+      - KAFKA_CONTROLLER_PASSWORD=admin123456
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=SASL_SSL
       - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
       - KAFKA_INTER_BROKER_USER=admin
-      - KAFKA_INTER_BROKER_PASSWORD=123456
+      - KAFKA_INTER_BROKER_PASSWORD=admin123456
       - KAFKA_CERTIFICATE_PASSWORD=kafka3
-      - KAFKA_TLS_TYPE=JKS # or PEM
+      - KAFKA_TLS_TYPE=JKS # JKS or PEM
     volumes:
-      - '/d/docker/kafka3-ssl/server.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro'
-      - '/d/docker/kafka3-ssl/server.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro'
+      - $PWD/kafka3-ssl/keystore/kafka.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro'
+      - $PWD/kafka3-ssl/truststore/kafka.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro'
     privileged: true
     networks:
       app-net1:
@@ -81,17 +83,24 @@ services:
           memory: 1g
 
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:master
-    container_name: kafka-ui
+  kafka3_emqx_exhook:
+    image: thousmile/go_emqx_exhook:1.5
+    container_name: kafka3_emqx_exhook
     ports:
-      - "28080:8080"
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka3:9092
-      - KAFKA_CLUSTERS_0_READONLY=false
-    depends_on:
-      - 'kafka3'
+      - "16565:16565"
+    volumes:
+      - /data/kafka3-ssl/config.yaml:/apps/config.yaml
+      - /data/kafka3-ssl/truststore/server.cer.pem:/apps/server.cer.pem
+      - /data/kafka3-ssl/keystore/client.cer.pem:/apps/client.cer.pem
+      - /data/kafka3-ssl/keystore/client.key.pem:/apps/client.key.pem
+      - /etc/localtime:/etc/localtime:ro
+    privileged: true
+    restart: always
+    extra_hosts:
+      - mht01:172.19.0.8
     networks:
       app-net1:
-
+    deploy:
+      resources:
+        limits:
+          memory: 258m

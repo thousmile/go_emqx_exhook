@@ -1,12 +1,23 @@
 # Rocketmq、Kafka、Rabbitmq、Redis
-mqType: Redis
+mqType: Kafka
 
 bridgeRule:
   topics:
     - "/#"
 
-redisConfig:
+
+# kafka 配置，需要提前创建 主题(emqx_exhook)
+kafkaConfig:
   addresses:
-    - 192.168.0.188:6379
-  streamName: emqx_exhook
-  db: 0
+    - mht01:9092
+  topic: emqx_exhook
+  sasl:
+    enable: true
+    user: admin
+    password: admin123456
+  tls:
+    enable: true
+    tlsSkipVerify: true
+    caFile: /apps/server.cer.pem
+    certFile: /apps/client.cer.pem
+    keyFile: /apps/client.key.pem

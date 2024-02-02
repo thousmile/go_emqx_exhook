@@ -85,7 +85,7 @@ func BuildRocketmqMessageProvider(rmqConf conf.RocketmqConfig) RocketmqMessagePr
 	)
 	err := rmqProducer.Start()
 	if err != nil {
-		log.Fatal(err)
+		log.Panicf("rocketmq producer error %v", err)
 	}
 	p1 := RocketmqMessageProvider{
 		Topic:       rmqConf.Topic,

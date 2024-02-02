@@ -65,15 +65,15 @@ func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook
 
 func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessageProvider {
 	url := strings.Join(rbbConf.Addresses, ",")
-	t := createRabbitTLS(rbbConf)
+	tlsConf := createRabbitTLS(rbbConf.Tls)
 	conn, err := rabbitmq.NewConn(url,
 		rabbitmq.WithConnectionOptionsLogging,
 		rabbitmq.WithConnectionOptionsConfig(
-			rabbitmq.Config{TLSClientConfig: t},
+			rabbitmq.Config{TLSClientConfig: tlsConf},
 		),
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Panicf("rabbitmq conn error %v", err)
 	}
 	publisher, err := rabbitmq.NewPublisher(
 		conn,
@@ -82,7 +82,7 @@ func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessagePr
 		rabbitmq.WithPublisherOptionsExchangeDurable,
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Panicf("rabbitmq producer error %v", err)
 	}
 	p1 := RabbitmqMessageProvider{
 		RoutingKeys:    rbbConf.RoutingKeys,
@@ -92,8 +92,7 @@ func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessagePr
 	return p1
 }
 
-func createRabbitTLS(sasl conf.RabbitmqConfig) (t *tls.Config) {
-	t = &tls.Config{}
+func createRabbitTLS(sasl conf.TlsConfig) (t *tls.Config) {
 	if sasl.CertFile != "" && sasl.KeyFile != "" && sasl.CaFile != "" {
 		cert, err := tls.LoadX509KeyPair(sasl.CertFile, sasl.KeyFile)
 		if err != nil {
@@ -106,8 +105,9 @@ func createRabbitTLS(sasl conf.RabbitmqConfig) (t *tls.Config) {
 		caCertPool := x509.NewCertPool()
 		caCertPool.AppendCertsFromPEM(caCert)
 		t = &tls.Config{
-			Certificates: []tls.Certificate{cert},
-			RootCAs:      caCertPool,
+			Certificates:       []tls.Certificate{cert},
+			RootCAs:            caCertPool,
+			InsecureSkipVerify: sasl.TlsSkipVerify,
 		}
 	}
 	return t

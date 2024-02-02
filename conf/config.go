@@ -38,10 +38,13 @@ func init() {
 			Addresses:    []string{"amqp://guest:guest@127.0.0.1:5672"},
 			ExchangeName: "amq.direct",
 			RoutingKeys:  []string{"exhook"},
-			UseTLS:       false,
-			CaFile:       "certs/ca/ca.crt",
-			CertFile:     "certs/client/client.crt",
-			KeyFile:      "certs/client/client.key",
+			Tls: TlsConfig{
+				Enable:        false,
+				TlsSkipVerify: false,
+				CaFile:        "certs/ca/ca.crt",
+				CertFile:      "certs/client/client.crt",
+				KeyFile:       "certs/client/client.key",
+			},
 		},
 	)
 	viper.SetDefault(
@@ -50,11 +53,13 @@ func init() {
 			Addresses: []string{"127.0.0.1:9092"},
 			Topic:     "emqx_exhook",
 			Sasl: KafkaSasl{
+				Enable:    false,
+				User:      "exhook",
+				Password:  "exhook",
+				Algorithm: "plain",
+			},
+			Tls: TlsConfig{
 				Enable:        false,
-				User:          "exhook",
-				Password:      "exhook",
-				Algorithm:     "plain",
-				UseTLS:        false,
 				TlsSkipVerify: false,
 				CaFile:        "certs/ca/ca.crt",
 				CertFile:      "certs/client/client.crt",
@@ -174,17 +179,8 @@ type RabbitmqConfig struct {
 	// Rocketmq ExchangeName
 	ExchangeName string `yaml:"exchangeName" json:"exchangeName"`
 
-	// Use TLS to communicate with the cluster
-	UseTLS bool `yaml:"useTLS" json:"useTLS"`
-
-	// The optional certificate authority file for TLS client authentication
-	CaFile string `yaml:"caFile" json:"caFile"`
-
-	// The optional certificate file for client authentication
-	CertFile string `yaml:"certFile" json:"certFile"`
-
-	// The optional key file for client authentication
-	KeyFile string `yaml:"keyFile" json:"keyFile"`
+	// Rocketmq tls
+	Tls TlsConfig `yaml:"tls" json:"tls"`
 }
 
 // KafkaConfig 桥接到 Kafka 的配置
@@ -196,8 +192,11 @@ type KafkaConfig struct {
 	// Kafka 的主题
 	Topic string `yaml:"topic" json:"topic"`
 
-	// Kafka SASL 配置
+	// Kafka SASL
 	Sasl KafkaSasl `yaml:"sasl" json:"sasl"`
+
+	// Kafka tls
+	Tls TlsConfig `yaml:"tls" json:"tls"`
 }
 
 // KafkaSasl 配置
@@ -213,9 +212,12 @@ type KafkaSasl struct {
 
 	// The SASL SCRAM SHA algorithm sha256 or sha512 as mechanism
 	Algorithm string `yaml:"algorithm" json:"algorithm"`
+}
 
-	// Use TLS to communicate with the cluster
-	UseTLS bool `yaml:"useTLS" json:"useTLS"`
+// TlsConfig 配置
+type TlsConfig struct {
+	// 启用
+	Enable bool `yaml:"enable" json:"enable"`
 
 	// Whether to skip TLS server cert verification
 	TlsSkipVerify bool `yaml:"tlsSkipVerify" json:"tlsSkipVerify"`

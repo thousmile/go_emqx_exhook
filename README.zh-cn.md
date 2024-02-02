@@ -31,6 +31,12 @@ rabbitmqConfig:
     - amqp://rabbit:mht123456@192.168.0.188:5672
   exchangeName: emqx_exhook
   routingKeys: exhook
+#  tls:
+#    enable: true
+#    tlsSkipVerify: true
+#    caFile: /apps/server.cer.pem
+#    certFile: /apps/client.cer.pem
+#    keyFile: /apps/client.key.pem
 
 
 # kafka 配置，需要提前创建 主题
@@ -41,7 +47,13 @@ kafkaConfig:
 #  sasl:
 #    enable: true
 #    user: admin
-#    password: 123456
+#    password: admin123456
+#  tls:
+#    enable: true
+#    tlsSkipVerify: true
+#    caFile: /apps/server.cer.pem
+#    certFile: /apps/client.cer.pem
+#    keyFile: /apps/client.key.pem
 
 
 # redis 配置，无需创建 stream 
@@ -50,11 +62,12 @@ redisConfig:
     - 127.0.0.1:6379
   streamName: emqx_exhook
   db: 0
-  username: redis123
-  password: redis123456
-  masterName: mymaster
-  sentinelUsername: sentinel123456
-  sentinelPassword: sentinel123456
+#  username: redis123
+#  password: redis123456
+#  masterName: mymaster
+#  sentinelUsername: sentinel123456
+#  sentinelPassword: sentinel123456
+
 
 
 # 发送方式 queue 或者 direct ，默认 queue
@@ -175,4 +188,24 @@ Rabbitmq:
 
 Kafka:
 ![](./images/20231207164403.png)
+
+
+
+[kafka-generate-ssl-automatic.sh](https://github.com/confluentinc/confluent-platform-security-tools)
+
+### jks 转换 pem
+
+```shell
+
+keytool -importkeystore -srckeystore kafka.truststore.jks -destkeystore server.p12 -deststoretype PKCS12
+
+openssl pkcs12 -in server.p12 -nokeys -out server.cer.pem
+
+keytool -importkeystore -srckeystore kafka.keystore.jks -destkeystore client.p12 -deststoretype PKCS12
+
+openssl pkcs12 -in client.p12 -nokeys -out client.cer.pem
+
+openssl pkcs12 -in client.p12 -nodes -nocerts -out client.key.pem
+
+```
 

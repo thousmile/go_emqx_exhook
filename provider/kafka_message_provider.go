@@ -5,7 +5,6 @@ import (
 	"crypto/sha512"
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"github.com/IBM/sarama"
 	"github.com/xdg-go/scram"
 	"go_emqx_exhook/conf"
@@ -73,7 +72,6 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 	config.Producer.RequiredAcks = sarama.WaitForAll          //ACK,发送完数据需要leader和follow都确认
 	config.Producer.Partitioner = sarama.NewRandomPartitioner //分区,新选出一个分区
 	config.Producer.Return.Successes = true                   //确认,成功交付的消息将在success channel返回
-	// 启用安全认证
 	if kafkaConf.Sasl.Enable {
 		sasl := kafkaConf.Sasl
 		config.Net.SASL.Enable = true
@@ -90,14 +88,14 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 		default:
 			config.Net.SASL.Mechanism = sarama.SASLTypePlaintext
 		}
-		if sasl.UseTLS {
-			config.Net.TLS.Enable = true
-			config.Net.TLS.Config = createTLSConfiguration(sasl)
-		}
+	}
+	if kafkaConf.Tls.Enable {
+		config.Net.TLS.Enable = true
+		config.Net.TLS.Config = createKafkaTLS(kafkaConf.Tls)
 	}
 	client, err := sarama.NewSyncProducer(kafkaConf.Addresses, config)
 	if err != nil {
-		fmt.Println("Producer error", err)
+		log.Panicf("kafka producer error %v", err)
 	}
 	p1 := KafkaMessageProvider{
 		Topic:         kafkaConf.Topic,
@@ -106,10 +104,7 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 	return p1
 }
 
-func createTLSConfiguration(sasl conf.KafkaSasl) (t *tls.Config) {
-	t = &tls.Config{
-		InsecureSkipVerify: sasl.TlsSkipVerify,
-	}
+func createKafkaTLS(sasl conf.TlsConfig) (t *tls.Config) {
 	if sasl.CertFile != "" && sasl.KeyFile != "" && sasl.CaFile != "" {
 		cert, err := tls.LoadX509KeyPair(sasl.CertFile, sasl.KeyFile)
 		if err != nil {

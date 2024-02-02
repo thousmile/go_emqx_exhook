@@ -9,6 +9,7 @@ bridgeRule:
   topics:
     - "/#"
 
+
 # rocketmq 配置，需要提前创建 主题(emqx_exhook)
 rocketmqConfig:
   nameServer:
@@ -16,6 +17,8 @@ rocketmqConfig:
   topic: emqx_exhook
   tag: exhook
   groupName: exhook
+  #accessKey: exhook
+  #secretKey: exhook
 
 
 # rabbitmq 配置，需要提前创建 队列(exhook_queue) 并且绑定 交换机(amq.direct)
@@ -24,6 +27,12 @@ rabbitmqConfig:
     - amqp://rabbit:mht123456@192.168.0.188:5672
   exchangeName: amq.direct
   routingKeys: exhook
+  tls:
+    enable: true
+    tlsSkipVerify: true
+    caFile: /apps/server.cer.pem
+    certFile: /apps/client.cer.pem
+    keyFile: /apps/client.key.pem
 
 
 # kafka 配置，需要提前创建 主题(emqx_exhook)
@@ -34,7 +43,13 @@ kafkaConfig:
   sasl:
     enable: true
     user: admin
-    password: 123456
+    password: admin123456
+  tls:
+    enable: true
+    tlsSkipVerify: true
+    caFile: /apps/server.cer.pem
+    certFile: /apps/client.cer.pem
+    keyFile: /apps/client.key.pem
 
 
 # redis 配置
