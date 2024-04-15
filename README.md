@@ -11,6 +11,13 @@ port: 16565
 # Rocketmq or Rabbitmq or Kafka or Redis
 mqType: Rocketmq
 
+# grpc server tls
+tls:
+  enable: true
+  caFile: certs/ca/ca.crt
+  certFile: certs/server/server.crt
+  keyFile: certs/server/server.key
+
 # emqx topic
 bridgeRule:
   topics:
@@ -88,6 +95,22 @@ queue:
 
 ```
 
+grpc server support tls
+append to /etc/go_emqx_exhook/config.yaml 
+
+```shell
+appName: go_emqx_exhook
+port: 16565
+# grpc server tls
+tls:
+  enable: true
+  caFile: certs/ca/ca.crt
+  certFile: certs/server/server.crt
+  keyFile: certs/server/server.key
+```
+
+<span style="color:red;"> Emqx > ExHook > URL: Must start with https for example : https://127.0.0.1:16565 </span>
+
 ```shell
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
@@ -149,7 +172,7 @@ protoc --go_out=. --go-grpc_out=. proto/*.proto
 
 # package binary
 goreleaser --snapshot --skip-publish --clean
-
+goreleaser release --skip=publish --clean
 
 # build docker image
 docker build -t go_emqx_exhook:1.5 ./

@@ -137,6 +137,9 @@ type ServerConfig struct {
 
 	// Queue 队列配置
 	Queue Queue `yaml:"queue" json:"queue"`
+
+	// grpc server tls
+	Tls TlsConfig `yaml:"tls" json:"tls"`
 }
 
 // BridgeRule 桥接规则

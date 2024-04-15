@@ -1,8 +1,18 @@
 appName: go_emqx_exhook
 port: 16565
 
+
+# grpc server tls
+tls:
+  enable: true
+  caFile: certs/ca/ca.crt
+  certFile: certs/server/server.crt
+  keyFile: certs/server/server.key
+
+
 # Rocketmq、Kafka、Rabbitmq、Redis
 mqType: Rocketmq
+
 
 # emqx 主题
 bridgeRule:

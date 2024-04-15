@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"github.com/apache/rocketmq-client-go/v2"
 	"go_emqx_exhook/conf"
@@ -8,9 +10,11 @@ import (
 	"go_emqx_exhook/impl"
 	"go_emqx_exhook/provider"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"io"
 	"log"
 	"net"
+	"os"
 	"strings"
 )
 
@@ -59,7 +63,13 @@ func main() {
 		go Direct(msgProvider, ch)
 	}
 
-	srv := grpc.NewServer()
+	var grpcServerOptions []grpc.ServerOption
+	tlsCfg := appConf.Tls
+	if tlsCfg.Enable {
+		grpcServerOptions = append(grpcServerOptions, grpc.Creds(getServerCred(tlsCfg)))
+	}
+	srv := grpc.NewServer(grpcServerOptions...)
+
 	// 注册 emqx 的 exhook grpc 服务
 	exhook.RegisterHookProviderServer(srv, &impl.HookProviderServerImpl{
 		SourceTopics: rule.Topics,
@@ -80,4 +90,17 @@ func main() {
 	}(lis)
 	log.Printf("%s [%s] %s => grpc server listen port : %d \n", appConf.AppName, appConf.SendMethod, appConf.MqType, appConf.Port)
 	_ = srv.Serve(lis)
+}
+
+func getServerCred(tlsCfg conf.TlsConfig) credentials.TransportCredentials {
+	cert, _ := tls.LoadX509KeyPair(tlsCfg.CertFile, tlsCfg.KeyFile)
+	certPool := x509.NewCertPool()
+	ca, _ := os.ReadFile(tlsCfg.CaFile)
+	certPool.AppendCertsFromPEM(ca)
+	cred := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+		ClientCAs:    certPool,
+	})
+	return cred
 }

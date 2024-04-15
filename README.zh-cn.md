@@ -86,6 +86,22 @@ queue:
 
 ```
 
+grpc server 支持 tls
+/etc/go_emqx_exhook/config.yaml 添加以下配置
+
+```shell
+appName: go_emqx_exhook
+port: 16565
+# grpc 支持 tls
+tls:
+  enable: true
+  caFile: certs/ca/ca.crt
+  certFile: certs/server/server.crt
+  keyFile: certs/server/server.key
+```
+
+<span style="color:red;"> Emqx > ExHook > URL: 必须以 https 开始，如: https://127.0.0.1:16565 </span>
+
 ```shell
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
@@ -178,8 +194,6 @@ docker run -d --name go_emqx_exhook -p 16565:16565 \
 | protocol        | 此消息协议(emqx默认Header)    |
 | peerhost        | 此消息生产者IP(emqx默认Header) |
 
-
-
 Redis:
 ![](./images/20240201103222.png)
 
@@ -188,8 +202,6 @@ Rabbitmq:
 
 Kafka:
 ![](./images/20231207164403.png)
-
-
 
 [kafka-generate-ssl-automatic.sh](https://github.com/confluentinc/confluent-platform-security-tools)
 
