@@ -86,11 +86,8 @@ func init() {
 	)
 	viper.SetConfigName("config")                // name of config file (without extension)
 	viper.SetConfigType("yaml")                  // REQUIRED if the config file does not have the extension in the name
-	viper.AddConfigPath("/etc/appname/")         // 查找配置文件所在路径
-	viper.AddConfigPath("$HOME/.appname")        // 多次调用AddConfigPath，可以添加多个搜索路径
-	viper.AddConfigPath(".")                     // optionally look for config in the working directory
-	viper.AddConfigPath("../")                   // optionally look for config in the working directory
-	viper.AddConfigPath("./conf/")               // 还可以在工作目录中搜索配置文件
+	viper.AddConfigPath(".")                     // 程序所在路径
+	viper.AddConfigPath("/etc/go_emqx_exhook/")  // Linux /etc/go_emqx_exhook 目录下
 	if err := viper.ReadInConfig(); err != nil { // Handle errors reading the config file
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
