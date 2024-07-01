@@ -117,7 +117,7 @@ tls:
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \
   -v /etc/localtime:/etc/localtime:ro \
-  --restart=always thousmile/go_emqx_exhook:1.7
+  --restart=always thousmile/go_emqx_exhook:1.8
 ```
 
 vim docker-compose.yml
@@ -134,7 +134,7 @@ networks:
 
 services:
   go_emqx_exhook:
-    image: thousmile/go_emqx_exhook:1.7
+    image: thousmile/go_emqx_exhook:1.8
     container_name: go_emqx_exhook
     ports:
       - "16565:16565"
@@ -177,18 +177,18 @@ goreleaser --snapshot --skip-publish --clean
 goreleaser release --skip=publish --clean
 
 # build docker image
-docker build -t go_emqx_exhook:1.7 ./
+docker build -t go_emqx_exhook:1.8 ./
 
 
 # run docker container
-docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.7
+docker run -d --name go_emqx_exhook -p 16565:16565 --restart=always go_emqx_exhook:1.8
 
 
 ## custom configuration file
 docker run -d --name go_emqx_exhook -p 16565:16565 \
   -v /etc/go_emqx_exhook/config.yaml:/apps/config.yaml \ 
   -v /etc/localtime:/etc/localtime:ro \ 
-  --restart=always thousmile/go_emqx_exhook:1.7
+  --restart=always thousmile/go_emqx_exhook:1.8
 
 ```
 
