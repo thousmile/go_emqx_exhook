@@ -1,5 +1,7 @@
 ## 快速启动
 
+[感谢@JetBrains 提供 Goland 支持![](./images/goland.svg)](https://www.jetbrains.com/?from=spring-admin-vue)
+
 vim /etc/go_emqx_exhook/config.yaml
 
 ```yaml

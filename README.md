@@ -2,6 +2,8 @@
 
 ### [中文文档](README.zh-cn.md)
 
+[Thanks to @JetBrains for providing Goland support ![](./images/goland.svg)](https://www.jetbrains.com/?from=spring-admin-vue)
+
 vim /etc/go_emqx_exhook/config.yaml
 
 ```yaml
