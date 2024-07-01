@@ -1,14 +1,16 @@
-FROM --platform=$TARGETPLATFORM alpine:3.18.6
-ARG TARGETPLATFORM
-ARG TARGETARCH
-MAINTAINER Wang Chen Chen<932560435@qq.com>
-ENV VERSION 1.0
-WORKDIR /apps
-COPY dist/go_emqx_exhook_linux_${TARGETARCH}/go_emqx_exhook /apps/golang_app
-COPY config.yaml /apps/config.yaml
-RUN chown 1001 /apps
-RUN chmod "g+rwX" /apps
-RUN chown 1001:root /apps
-ENV LANG C.UTF-8
+FROM golang:1.22.4-bookworm AS builder
+ENV GO111MODULE=on
+ENV CGO_ENABLED=0
+WORKDIR /build
+ADD go.mod .
+ADD go.sum .
+RUN go mod download
+COPY . .
+RUN go build -o /build/app
+
+FROM debian:stable-slim
+WORKDIR /apps/
+COPY --from=builder --chown=1001:root /build/app /apps/app
+COPY --from=builder --chown=1001:root /build/config.yaml /apps/config.yaml
 EXPOSE 16565
-ENTRYPOINT /apps/golang_app
+CMD ["./app"]
