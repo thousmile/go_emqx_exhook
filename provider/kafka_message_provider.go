@@ -15,6 +15,14 @@ import (
 	"time"
 )
 
+var codecs = map[string]sarama.CompressionCodec{
+	"none":   sarama.CompressionNone,
+	"gzip":   sarama.CompressionGZIP,
+	"snappy": sarama.CompressionSnappy,
+	"lz4":    sarama.CompressionLZ4,
+	"zstd":   sarama.CompressionZSTD,
+}
+
 type KafkaMessageProvider struct {
 	// 目标主题
 	Topic string
@@ -72,6 +80,11 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 	config.Producer.RequiredAcks = sarama.WaitForAll          //ACK,发送完数据需要leader和follow都确认
 	config.Producer.Partitioner = sarama.NewRandomPartitioner //分区,新选出一个分区
 	config.Producer.Return.Successes = true                   //确认,成功交付的消息将在success channel返回
+	codec, ok := codecs[kafkaConf.CompressionCodec]
+	if !ok {
+		codec = sarama.CompressionNone
+	}
+	config.Producer.Compression = codec
 	if kafkaConf.Sasl.Enable {
 		sasl := kafkaConf.Sasl
 		config.Net.SASL.Enable = true

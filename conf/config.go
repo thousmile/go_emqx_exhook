@@ -50,8 +50,9 @@ func init() {
 	viper.SetDefault(
 		"kafkaConfig",
 		KafkaConfig{
-			Addresses: []string{"127.0.0.1:9092"},
-			Topic:     "emqx_exhook",
+			Addresses:        []string{"127.0.0.1:9092"},
+			Topic:            "emqx_exhook",
+			CompressionCodec: "none",
 			Sasl: KafkaSasl{
 				Enable:    false,
 				User:      "exhook",
@@ -191,6 +192,9 @@ type KafkaConfig struct {
 
 	// Kafka 的主题
 	Topic string `yaml:"topic" json:"topic"`
+
+	// 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
+	CompressionCodec string `yaml:"compressionCodec" json:"compressionCodec"`
 
 	// Kafka SASL
 	Sasl KafkaSasl `yaml:"sasl" json:"sasl"`

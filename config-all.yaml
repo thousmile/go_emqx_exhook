@@ -50,6 +50,8 @@ kafkaConfig:
   addresses:
     - 192.168.0.188:9092
   topic: emqx_exhook
+  # 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
+  compressionCodec: none
   sasl:
     enable: true
     user: admin
