@@ -9,11 +9,12 @@ bridgeRule:
 
 redisConfig:
   addresses:
-    - 192.168.0.188:6379
+    - dev:6379
   streamName: emqx_exhook
-  db: 2
+  #streamMaxLen: 10
+  db: 3
   #username: redis123
-  #password: redis123456
+  password: qlm123456
   #masterName: mymaster
   #sentinelUsername: sentinel123456
   #sentinelPassword: sentinel123456

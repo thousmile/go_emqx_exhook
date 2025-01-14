@@ -72,6 +72,8 @@ redisConfig:
   addresses:
     - 127.0.0.1:6379
   streamName: emqx_exhook
+  # The maximum number of messages in a topic. If the number exceeds the limit, the first message will be automatically removed. -1 means no limit
+  streamMaxLen: -1
   db: 0
 #  username: redis123
 #  password: redis123456

@@ -13,6 +13,8 @@ import (
 type RedisMessageProvider struct {
 	// 目标主题
 	StreamName string
+	// 消息最大数量
+	StreamMaxLen int64
 	// redis 提供者
 	RedisClient redis.UniversalClient
 }
@@ -46,10 +48,14 @@ func (r RedisMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) 
 		}
 	}
 	values[SourcePayload] = sourceMessage.Payload
-	return &redis.XAddArgs{
+	result := &redis.XAddArgs{
 		Stream: r.StreamName,
 		Values: values,
 	}
+	if r.StreamMaxLen > 0 {
+		result.MaxLen = r.StreamMaxLen
+	}
+	return result
 }
 
 func BuildRedisMessageProvider(redisConf conf.RedisConfig) RedisMessageProvider {
@@ -78,7 +84,8 @@ func BuildRedisMessageProvider(redisConf conf.RedisConfig) RedisMessageProvider 
 	}
 	client := redis.NewUniversalClient(&options)
 	return RedisMessageProvider{
-		StreamName:  redisConf.StreamName,
-		RedisClient: client,
+		StreamName:   redisConf.StreamName,
+		StreamMaxLen: redisConf.StreamMaxLen,
+		RedisClient:  client,
 	}
 }

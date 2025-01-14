@@ -69,6 +69,7 @@ redisConfig:
   addresses:
     - 127.0.0.1:6379
   streamName: emqx_exhook
+  streamMaxLen: -1
   db: 0
   username: redis123
   password: redis123456

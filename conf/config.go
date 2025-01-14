@@ -71,9 +71,10 @@ func init() {
 	viper.SetDefault(
 		"redisConfig",
 		RedisConfig{
-			Addresses:  []string{"127.0.0.1:6379"},
-			StreamName: "emqx_exhook",
-			DB:         0,
+			Addresses:    []string{"127.0.0.1:6379"},
+			StreamName:   "emqx_exhook",
+			StreamMaxLen: -1,
+			DB:           0,
 		},
 	)
 	viper.SetDefault("sendMethod", "queue")
@@ -242,6 +243,9 @@ type RedisConfig struct {
 
 	// redis stream
 	StreamName string `yaml:"streamName" json:"streamName"`
+
+	// redis stream 消息最大数量
+	StreamMaxLen int64 `yaml:"streamMaxLen" json:"streamMaxLen"`
 
 	// 用户名，默认: 空
 	Username string `yaml:"username" json:"username"`

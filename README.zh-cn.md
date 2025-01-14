@@ -63,6 +63,8 @@ redisConfig:
   addresses:
     - 127.0.0.1:6379
   streamName: emqx_exhook
+  # 主题最大的消息数量，超出会自动移除最开始的消息，-1表示没有限制
+  streamMaxLen: -1
   db: 0
 #  username: redis123
 #  password: redis123456
