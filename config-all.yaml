@@ -1,7 +1,6 @@
 appName: go_emqx_exhook
 port: 16565
 
-
 # grpc server tls
 tls:
   enable: true
@@ -9,21 +8,18 @@ tls:
   certFile: certs/server/server.crt
   keyFile: certs/server/server.key
 
-
-# Rocketmq、Kafka、Rabbitmq、Redis
+# Rocketmq、Kafka、Rabbitmq、RabbitmqStream、Redis
 mqType: Rocketmq
-
 
 # emqx 主题
 bridgeRule:
   topics:
     - "/#"
 
-
 # rocketmq 配置，需要提前创建 主题(emqx_exhook)
 rocketmqConfig:
   nameServer:
-    - 192.168.0.188:9876
+    - 127.0.0.1:9876
   topic: emqx_exhook
   tag: exhook
   groupName: exhook
@@ -34,9 +30,23 @@ rocketmqConfig:
 # rabbitmq 配置，需要提前创建 队列(exhook_queue) 并且绑定 交换机(amq.direct)
 rabbitmqConfig:
   addresses:
-    - amqp://rabbit:mht123456@192.168.0.188:5672
+    - amqp://guest:guest@127.0.0.1:5672
   exchangeName: amq.direct
-  routingKeys: exhook
+  routingKeys: emqx_exhook
+  tls:
+    enable: true
+    tlsSkipVerify: true
+    caFile: /apps/server.cer.pem
+    certFile: /apps/client.cer.pem
+    keyFile: /apps/client.key.pem
+
+
+# RabbitmqStream 配置，需要提前创建 流 emqx_exhook
+rabbitmqStreamConfig:
+  addresses:
+    - rabbitmq-stream://guest:guest@127.0.0.1:5552
+  streamName: emqx_exhook
+  maxProducersPerClient: 2
   tls:
     enable: true
     tlsSkipVerify: true
@@ -48,7 +58,7 @@ rabbitmqConfig:
 # kafka 配置，需要提前创建 主题(emqx_exhook)
 kafkaConfig:
   addresses:
-    - 192.168.0.188:9092
+    - 127.0.0.1:9092
   topic: emqx_exhook
   # 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
   compressionCodec: none

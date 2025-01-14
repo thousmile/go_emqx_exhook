@@ -8,7 +8,7 @@ vim /etc/go_emqx_exhook/config.yaml
 appName: go_emqx_exhook
 port: 16565
 
-# mq类型: Rocketmq、Kafka、Rabbitmq、Redis
+# mq类型: Rocketmq、Kafka、Rabbitmq、RabbitmqStream、Redis
 mqType: Rocketmq
 
 # emqx 主题
@@ -19,7 +19,7 @@ bridgeRule:
 # rocketmq 配置，需要提前创建 主题
 rocketmqConfig:
   nameServer:
-    - 192.168.0.188:9876
+    - 127.0.0.1:9876
   topic: emqx_exhook
   tag: exhook
   groupName: exhook
@@ -30,9 +30,24 @@ rocketmqConfig:
 # rabbitmq 配置，需要提前创建 交换机 并且绑定队列
 rabbitmqConfig:
   addresses:
-    - amqp://rabbit:mht123456@192.168.0.188:5672
+    - amqp://guest:guest@127.0.0.1:5672
   exchangeName: emqx_exhook
   routingKeys: exhook
+#  tls:
+#    enable: true
+#    tlsSkipVerify: true
+#    caFile: /apps/server.cer.pem
+#    certFile: /apps/client.cer.pem
+#    keyFile: /apps/client.key.pem
+
+
+# rabbitmq stream 配置，需要提前创建 流 emqx_exhook
+rabbitmqStreamConfig:
+  addresses:
+    - rabbitmq-stream://guest:guest@127.0.0.1:5552
+  streamName: emqx_exhook
+  # 发送者数量
+  maxProducersPerClient: 2
 #  tls:
 #    enable: true
 #    tlsSkipVerify: true
@@ -44,8 +59,10 @@ rabbitmqConfig:
 # kafka 配置，需要提前创建 主题
 kafkaConfig:
   addresses:
-    - 192.168.0.188:9092
+    - 127.0.0.1:9092
   topic: emqx_exhook
+  # 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
+  compressionCodec: none
 #  sasl:
 #    enable: true
 #    user: admin
@@ -64,7 +81,7 @@ redisConfig:
     - 127.0.0.1:6379
   streamName: emqx_exhook
   # 主题最大的消息数量，超出会自动移除最开始的消息，-1表示没有限制
-  streamMaxLen: -1
+  streamMaxLen: 100000
   db: 0
 #  username: redis123
 #  password: redis123456

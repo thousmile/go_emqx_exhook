@@ -3,7 +3,6 @@ package conf
 import (
 	"errors"
 	"github.com/spf13/viper"
-	"gopkg.in/yaml.v3"
 	"log"
 )
 
@@ -37,14 +36,17 @@ func init() {
 		RabbitmqConfig{
 			Addresses:    []string{"amqp://guest:guest@127.0.0.1:5672"},
 			ExchangeName: "amq.direct",
-			RoutingKeys:  []string{"exhook"},
-			Tls: TlsConfig{
-				Enable:        false,
-				TlsSkipVerify: false,
-				CaFile:        "certs/ca/ca.crt",
-				CertFile:      "certs/client/client.crt",
-				KeyFile:       "certs/client/client.key",
-			},
+			RoutingKeys:  []string{"emqx_exhook"},
+			Tls:          TlsConfig{Enable: false},
+		},
+	)
+	viper.SetDefault(
+		"rabbitmqStreamConfig",
+		RabbitmqStreamConfig{
+			Addresses:             []string{"rabbitmq-stream://guest:guest@127.0.0.1:5552"},
+			StreamName:            "emqx_exhook",
+			MaxProducersPerClient: 2,
+			Tls:                   TlsConfig{Enable: false},
 		},
 	)
 	viper.SetDefault(
@@ -53,19 +55,8 @@ func init() {
 			Addresses:        []string{"127.0.0.1:9092"},
 			Topic:            "emqx_exhook",
 			CompressionCodec: "none",
-			Sasl: KafkaSasl{
-				Enable:    false,
-				User:      "exhook",
-				Password:  "exhook",
-				Algorithm: "plain",
-			},
-			Tls: TlsConfig{
-				Enable:        false,
-				TlsSkipVerify: false,
-				CaFile:        "certs/ca/ca.crt",
-				CertFile:      "certs/client/client.crt",
-				KeyFile:       "certs/client/client.key",
-			},
+			Sasl:             KafkaSasl{Enable: false},
+			Tls:              TlsConfig{Enable: false},
 		},
 	)
 	viper.SetDefault(
@@ -99,8 +90,6 @@ func init() {
 	if err := viper.Unmarshal(&Config); err != nil {
 		log.Panicf("viper Unmarshal error : %v \n", err.Error())
 	}
-	out, _ := yaml.Marshal(Config)
-	log.Printf("app config : \n%s\n", string(out))
 }
 
 type ServerConfig struct {
@@ -116,7 +105,7 @@ type ServerConfig struct {
 	// 桥接规则
 	BridgeRule BridgeRule `yaml:"bridgeRule" json:"bridgeRule"`
 
-	// mq 类型 Rocketmq、Rabbitmq、Kafka、Redis
+	// mq 类型 Rocketmq、Rabbitmq、RabbitmqStream、Kafka、Redis
 	MqType string `yaml:"mqType" json:"mqType"`
 
 	// Rocketmq 配置
@@ -124,6 +113,9 @@ type ServerConfig struct {
 
 	// Rabbitmq 配置
 	RabbitmqConfig RabbitmqConfig `yaml:"rabbitmqConfig" json:"rabbitmqConfig"`
+
+	// RabbitmqStream 配置
+	RabbitmqStreamConfig RabbitmqStreamConfig `yaml:"rabbitmqStreamConfig" json:"rabbitmqStreamConfig"`
 
 	// Kafka 配置
 	KafkaConfig KafkaConfig `yaml:"kafkaConfig" json:"kafkaConfig"`
@@ -171,17 +163,31 @@ type RocketmqConfig struct {
 
 // RabbitmqConfig 桥接到 Rabbitmq 的配置
 type RabbitmqConfig struct {
-
-	// Rocketmq Addresses
+	// Rabbitmq Addresses
 	Addresses []string `yaml:"addresses" json:"addresses"`
 
-	// Rocketmq RoutingKeys
+	// Rabbitmq RoutingKeys
 	RoutingKeys []string `yaml:"routingKeys" json:"routingKeys"`
 
-	// Rocketmq ExchangeName
+	// Rabbitmq ExchangeName
 	ExchangeName string `yaml:"exchangeName" json:"exchangeName"`
 
-	// Rocketmq tls
+	// Rabbitmq tls
+	Tls TlsConfig `yaml:"tls" json:"tls"`
+}
+
+// RabbitmqStreamConfig 桥接到 Rabbitmq Stream 的配置
+type RabbitmqStreamConfig struct {
+	// Rabbitmq Addresses
+	Addresses []string `yaml:"addresses" json:"addresses"`
+
+	// Rabbitmq StreamName
+	StreamName string `yaml:"streamName" json:"streamName"`
+
+	// 每个客户的最大生产商数
+	MaxProducersPerClient int `yaml:"maxProducersPerClient" json:"maxProducersPerClient"`
+
+	// Rabbitmq tls
 	Tls TlsConfig `yaml:"tls" json:"tls"`
 }
 

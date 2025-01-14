@@ -1,20 +1,11 @@
-# Rocketmq、Kafka、Rabbitmq、Redis
-mqType: Redis
-
+# Rocketmq、Kafka、Rabbitmq、RabbitmqStream、Redis
+mqType: RabbitmqStream
 
 bridgeRule:
   topics:
     - "/#"
 
-
-redisConfig:
+rabbitmqStreamConfig:
   addresses:
-    - dev:6379
+    - rabbitmq-stream://rabbit:qlm123456@192.168.1.168:5552
   streamName: emqx_exhook
-  #streamMaxLen: 10
-  db: 3
-  #username: redis123
-  password: qlm123456
-  #masterName: mymaster
-  #sentinelUsername: sentinel123456
-  #sentinelPassword: sentinel123456

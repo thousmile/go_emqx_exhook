@@ -10,7 +10,7 @@ vim /etc/go_emqx_exhook/config.yaml
 appName: go_emqx_exhook
 port: 16565
 
-# Rocketmq or Rabbitmq or Kafka or Redis
+# Rocketmq or Rabbitmq or RabbitmqStream or Kafka or Redis
 mqType: Rocketmq
 
 # grpc server tls
@@ -28,7 +28,7 @@ bridgeRule:
 # rocketmq configuration, you need to create a topic in advance
 rocketmqConfig:
   nameServer:
-    - 192.168.0.188:9876
+    - 127.0.0.1:9876
   topic: emqx_exhook
   tag: exhook
   groupName: exhook
@@ -39,9 +39,24 @@ rocketmqConfig:
 # rabbitmq configuration, you need to create a switch in advance and bind a queue
 rabbitmqConfig:
   addresses:
-    - amqp://rabbit:mht123456@192.168.0.188:5672
+    - amqp://guest:guest@127.0.0.1:5672
   exchangeName: emqx_exhook
   routingKeys: exhook
+#  tls:
+#    enable: true
+#    tlsSkipVerify: true
+#    caFile: /apps/server.cer.pem
+#    certFile: /apps/client.cer.pem
+#    keyFile: /apps/client.key.pem
+
+
+# rabbitmq stream configuration, you need to create a stream in advance
+rabbitmqStreamConfig:
+  addresses:
+    - rabbitmq-stream://guest:guest@127.0.0.1:5552
+  streamName: emqx_exhook
+  # number of senders
+  maxProducersPerClient: 2
 #  tls:
 #    enable: true
 #    tlsSkipVerify: true
@@ -53,8 +68,10 @@ rabbitmqConfig:
 # kafka configuration, you need to create a topic in advance
 kafkaConfig:
   addresses:
-    - 192.168.0.188:9092
+    - 127.0.0.1:9092
   topic: emqx_exhook
+  # compression type support: "none", "gzip", "snappy", "lz4", "zstd", default: "none"
+  compressionCodec: none
 #  sasl:
 #    enable: true
 #    user: admin
@@ -73,7 +90,7 @@ redisConfig:
     - 127.0.0.1:6379
   streamName: emqx_exhook
   # The maximum number of messages in a topic. If the number exceeds the limit, the first message will be automatically removed. -1 means no limit
-  streamMaxLen: -1
+  streamMaxLen: 100000
   db: 0
 #  username: redis123
 #  password: redis123456

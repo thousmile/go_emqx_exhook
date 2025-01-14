@@ -35,6 +35,10 @@ func main() {
 		defer rabbit.RabbitProducer.Close()
 		defer connClose(rabbit.RabbitmqConn)
 		msgProvider = rabbit
+	} else if strings.EqualFold(appConf.MqType, "RabbitmqStream") || strings.EqualFold(appConf.MqType, "rabbitmqStream") {
+		rabbitMQStream := provider.BuildRabbitmqStreamMessageProvider(appConf.RabbitmqStreamConfig)
+		defer connClose(rabbitMQStream.RabbitStreamProducer)
+		msgProvider = rabbitMQStream
 	} else if strings.EqualFold(appConf.MqType, "Kafka") || strings.EqualFold(appConf.MqType, "kafka") {
 		kafka := provider.BuildKafkaMessageProvider(appConf.KafkaConfig)
 		defer connClose(kafka.KafkaProducer)
