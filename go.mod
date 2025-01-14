@@ -14,7 +14,6 @@ require (
 	github.com/xdg-go/scram v1.1.2
 	google.golang.org/grpc v1.69.4
 	google.golang.org/protobuf v1.36.2
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -75,5 +74,6 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250106144421-5f5ef82da422 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	stathat.com/c/consistent v1.0.0 // indirect
 )
