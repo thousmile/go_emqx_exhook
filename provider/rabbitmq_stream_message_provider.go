@@ -8,7 +8,16 @@ import (
 	"go_emqx_exhook/emqx.io/grpc/exhook"
 	"log"
 	"strconv"
+	"time"
 )
+
+var rabbitmqStreamCodecs = map[string]stream.Compression{
+	"none":   stream.Compression{}.None(),
+	"gzip":   stream.Compression{}.Gzip(),
+	"snappy": stream.Compression{}.Snappy(),
+	"lz4":    stream.Compression{}.Lz4(),
+	"zstd":   stream.Compression{}.Zstd(),
+}
 
 type RabbitmqStreamMessageProvider struct {
 	// rabbitmq stream 提供者
@@ -64,7 +73,39 @@ func BuildRabbitmqStreamMessageProvider(rbbConf conf.RabbitmqStreamConfig) Rabbi
 		SetMaxProducersPerClient(rbbConf.MaxProducersPerClient).
 		SetTLSConfig(tlsConf)
 	env, err := stream.NewEnvironment(options)
-	producer, err := env.NewProducer(rbbConf.StreamName, stream.NewProducerOptions())
+	maxAge := 7 * 24 * time.Hour
+	if len(rbbConf.MaxAge) > 0 {
+		maxAge, err = time.ParseDuration(rbbConf.MaxAge)
+		if err != nil {
+			log.Panicf("rabbitmq stream maxAge format error %v", err)
+		}
+	}
+	maxLengthBytes := stream.ByteCapacity{}.GB(10)
+	if len(rbbConf.MaxLengthBytes) > 0 {
+		maxLengthBytes = stream.ByteCapacity{}.From(rbbConf.MaxLengthBytes)
+	}
+	maxSegmentSizeBytes := stream.ByteCapacity{}.GB(1)
+	if len(rbbConf.MaxSegmentSizeBytes) > 0 {
+		maxSegmentSizeBytes = stream.ByteCapacity{}.From(rbbConf.MaxSegmentSizeBytes)
+	}
+	err = env.DeclareStream(rbbConf.StreamName,
+		stream.NewStreamOptions().
+			SetMaxAge(maxAge).
+			SetMaxLengthBytes(maxLengthBytes).
+			SetMaxSegmentSizeBytes(maxSegmentSizeBytes),
+	)
+	defCodec := stream.Compression{}.None()
+	if len(rbbConf.CompressionCodec) > 0 {
+		codec1, ok := rabbitmqStreamCodecs[rbbConf.CompressionCodec]
+		if ok {
+			defCodec = codec1
+		}
+	}
+	producer, err := env.NewProducer(rbbConf.StreamName,
+		stream.NewProducerOptions().
+			SetCompression(defCodec).
+			SetSubEntrySize(100),
+	)
 	if err != nil {
 		log.Panicf("rabbitmq stream producer error %v", err)
 	}

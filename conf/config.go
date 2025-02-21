@@ -187,6 +187,18 @@ type RabbitmqStreamConfig struct {
 	// 每个客户的最大生产商数
 	MaxProducersPerClient int `yaml:"maxProducersPerClient" json:"maxProducersPerClient"`
 
+	// 消息保留时间 默认 7天 ，60秒 = 60s , 10分钟 = 10m , 2小时 = 2h
+	MaxAge string `yaml:"maxAge" json:"maxAge"`
+
+	// 流的最大字节容量 默认 10gb ，支持 kb, mb, gb, tb 列: 10gb , 1024mb
+	MaxLengthBytes string `yaml:"maxLengthBytes" json:"maxLengthBytes"`
+
+	// 分段文件大小 默认 1gb ，支持 kb, mb, gb, tb 列: 10gb , 1024mb
+	MaxSegmentSizeBytes string `yaml:"maxSegmentSizeBytes" json:"maxSegmentSizeBytes"`
+
+	// 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
+	CompressionCodec string `yaml:"compressionCodec" json:"compressionCodec"`
+
 	// Rabbitmq tls
 	Tls TlsConfig `yaml:"tls" json:"tls"`
 }
@@ -199,6 +211,19 @@ type KafkaConfig struct {
 
 	// Kafka 的主题
 	Topic string `yaml:"topic" json:"topic"`
+
+	// NumPartitions contains the number of partitions to create in the topic, or
+	// -1 if we are either specifying a manual partition assignment or using the
+	// default partitions.
+	NumPartitions int32 `yaml:"numPartitions" json:"numPartitions"`
+
+	// ReplicationFactor contains the number of replicas to create for each
+	// partition in the topic, or -1 if we are either specifying a manual
+	// partition assignment or using the default replication factor.
+	ReplicationFactor int16 `yaml:"replicationFactor" json:"replicationFactor"`
+
+	// ConfigEntries contains the custom topic configurations to set.
+	ConfigEntries map[string]interface{} `yaml:"configEntries" json:"configEntries"`
 
 	// 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
 	CompressionCodec string `yaml:"compressionCodec" json:"compressionCodec"`

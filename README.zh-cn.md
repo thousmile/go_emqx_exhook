@@ -45,9 +45,18 @@ rabbitmqConfig:
 rabbitmqStreamConfig:
   addresses:
     - rabbitmq-stream://guest:guest@127.0.0.1:5552
+  # 不存在就创建
   streamName: emqx_exhook
   # 发送者数量
   maxProducersPerClient: 2
+  # x-max-age 支持 [ s, m, h ] 默认: 168h
+  maxAge: 168h
+  # x-max-length-bytes 支持 [ kb, mb, gb, tb ] 默认: "10gb"
+  maxLengthBytes: 10gb
+  # x-stream-max-segment-size-bytes 支持 [ kb, mb, gb, tb ] 默认: "1gb"
+  maxSegmentSizeBytes: 1gb
+  # 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
+  compressionCodec: zstd
 #  tls:
 #    enable: true
 #    tlsSkipVerify: true
@@ -60,9 +69,18 @@ rabbitmqStreamConfig:
 kafkaConfig:
   addresses:
     - 127.0.0.1:9092
+  # 不存在就创建
   topic: emqx_exhook
   # 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
   compressionCodec: none
+  # 分区数量，默认 -1 
+  numPartitions: 3
+  # 副本数量，默认 -1 
+  replicationFactor: 3
+  # 自定主题配置
+  configEntries:
+    retention.ms: 604800000
+
 #  sasl:
 #    enable: true
 #    user: admin

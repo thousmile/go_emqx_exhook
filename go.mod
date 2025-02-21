@@ -1,8 +1,6 @@
 module go_emqx_exhook
 
-go 1.22.6
-
-toolchain go1.23.4
+go 1.23.4
 
 require (
 	github.com/IBM/sarama v1.45.0

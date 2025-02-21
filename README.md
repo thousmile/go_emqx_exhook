@@ -50,13 +50,22 @@ rabbitmqConfig:
 #    keyFile: /apps/client.key.pem
 
 
-# rabbitmq stream configuration, you need to create a stream in advance
+# rabbitmq stream configuration
 rabbitmqStreamConfig:
   addresses:
     - rabbitmq-stream://guest:guest@127.0.0.1:5552
+  # if it does not exist, create
   streamName: emqx_exhook
   # number of senders
   maxProducersPerClient: 2
+  # x-max-age support [ s, m, h ] default: "168h" 
+  maxAge: 168h
+  # x-max-length-bytes support [ kb, mb, gb, tb ] default: "10gb"
+  maxLengthBytes: 10gb
+  # x-stream-max-segment-size-bytes support [ kb, mb, gb, tb ] default: "1gb"
+  maxSegmentSizeBytes: 1gb
+  # support: "none", "gzip", "snappy", "lz4", "zstd", default: "none"
+  compressionCodec: zstd
 #  tls:
 #    enable: true
 #    tlsSkipVerify: true
@@ -65,13 +74,27 @@ rabbitmqStreamConfig:
 #    keyFile: /apps/client.key.pem
 
 
-# kafka configuration, you need to create a topic in advance
+# kafka configuration
 kafkaConfig:
   addresses:
     - 127.0.0.1:9092
+  # if it does not exist, create
   topic: emqx_exhook
   # compression type support: "none", "gzip", "snappy", "lz4", "zstd", default: "none"
   compressionCodec: none
+  # NumPartitions contains the number of partitions to create in the topic, or
+  # -1 if we are either specifying a manual partition assignment or using the
+  # default partitions.
+  numPartitions: 3
+  # ReplicationFactor contains the number of replicas to create for each
+  # partition in the topic, or -1 if we are either specifying a manual
+  # partition assignment or using the default replication factor.
+  replicationFactor: 3
+  # ConfigEntries contains the custom topic configurations to set.
+  configEntries:
+    retention.ms: 604800000
+
+
 #  sasl:
 #    enable: true
 #    user: admin

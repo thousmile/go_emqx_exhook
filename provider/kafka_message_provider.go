@@ -5,6 +5,7 @@ import (
 	"crypto/sha512"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"github.com/IBM/sarama"
 	"github.com/xdg-go/scram"
 	"go_emqx_exhook/conf"
@@ -15,7 +16,7 @@ import (
 	"time"
 )
 
-var codecs = map[string]sarama.CompressionCodec{
+var kafkaCodecs = map[string]sarama.CompressionCodec{
 	"none":   sarama.CompressionNone,
 	"gzip":   sarama.CompressionGZIP,
 	"snappy": sarama.CompressionSnappy,
@@ -80,7 +81,7 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 	config.Producer.RequiredAcks = sarama.WaitForAll          //ACK,发送完数据需要leader和follow都确认
 	config.Producer.Partitioner = sarama.NewRandomPartitioner //分区,新选出一个分区
 	config.Producer.Return.Successes = true                   //确认,成功交付的消息将在success channel返回
-	codec, ok := codecs[kafkaConf.CompressionCodec]
+	codec, ok := kafkaCodecs[kafkaConf.CompressionCodec]
 	if !ok {
 		codec = sarama.CompressionNone
 	}
@@ -106,13 +107,48 @@ func BuildKafkaMessageProvider(kafkaConf conf.KafkaConfig) KafkaMessageProvider 
 		config.Net.TLS.Enable = true
 		config.Net.TLS.Config = createKafkaTLS(kafkaConf.Tls)
 	}
-	client, err := sarama.NewSyncProducer(kafkaConf.Addresses, config)
+	client, err := sarama.NewClient(kafkaConf.Addresses, config)
+	if err != nil {
+		log.Panicf("kafka client error %v", err)
+	}
+	clusterAdmin, err := sarama.NewClusterAdminFromClient(client)
+	if err != nil {
+		log.Panicf("kafka cluster admin error %v", err)
+	}
+	topics, err := clusterAdmin.ListTopics()
+	if err != nil {
+		log.Panicf("kafka list topics error %v", err)
+	}
+	_, ok = topics[kafkaConf.Topic]
+	if !ok {
+		// 主题不存在，就创建主题
+		detail := &sarama.TopicDetail{NumPartitions: -1, ReplicationFactor: -1}
+		if kafkaConf.NumPartitions > -1 {
+			detail.NumPartitions = kafkaConf.NumPartitions
+		}
+		if kafkaConf.ReplicationFactor > -1 {
+			detail.ReplicationFactor = kafkaConf.ReplicationFactor
+		}
+		if len(kafkaConf.ConfigEntries) > 0 {
+			entries := make(map[string]*string, len(kafkaConf.ConfigEntries))
+			for k, v := range kafkaConf.ConfigEntries {
+				str := fmt.Sprintf("%v", v)
+				entries[k] = &str
+			}
+			detail.ConfigEntries = entries
+		}
+		err = clusterAdmin.CreateTopic(kafkaConf.Topic, detail, false)
+		if err != nil {
+			log.Panicf("kafka create topic %s error %v", kafkaConf.Topic, err)
+		}
+	}
+	producer, err := sarama.NewSyncProducerFromClient(client)
 	if err != nil {
 		log.Panicf("kafka producer error %v", err)
 	}
 	p1 := KafkaMessageProvider{
 		Topic:         kafkaConf.Topic,
-		KafkaProducer: client,
+		KafkaProducer: producer,
 	}
 	return p1
 }
