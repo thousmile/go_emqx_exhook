@@ -5,13 +5,13 @@ go 1.23.4
 require (
 	github.com/IBM/sarama v1.45.0
 	github.com/apache/rocketmq-client-go/v2 v2.1.2
-	github.com/rabbitmq/rabbitmq-stream-go-client v1.4.11
+	github.com/rabbitmq/rabbitmq-stream-go-client v1.5.0
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/spf13/viper v1.19.0
 	github.com/wagslane/go-rabbitmq v0.15.0
 	github.com/xdg-go/scram v1.1.2
-	google.golang.org/grpc v1.69.4
-	google.golang.org/protobuf v1.36.2
+	google.golang.org/grpc v1.70.0
+	google.golang.org/protobuf v1.36.5
 )
 
 require (

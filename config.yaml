@@ -1,29 +1,29 @@
 # Rocketmq、Kafka、Rabbitmq、RabbitmqStream、Redis
-mqType: Kafka
+mqType: RabbitmqStream
 
 bridgeRule:
   topics:
     - "/#"
 
-# kafka 配置，需要提前创建 主题(emqx_exhook)
-kafkaConfig:
+
+# rabbitmq 配置，需要提前创建 队列(exhook_queue) 并且绑定 交换机(amq.direct)
+rabbitmqConfig:
   addresses:
-    - kafka3:9092
-  topic: emqx_exhook
-  # 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
+    - amqp://rabbit:TE8qP3MZIksFzkSHZq@rabbitmq01:5671
+    - amqp://rabbit:TE8qP3MZIksFzkSHZq@rabbitmq02:5672
+    - amqp://rabbit:TE8qP3MZIksFzkSHZq@rabbitmq03:5673
+  exchangeName: amq.direct
+  routingKeys: emqx_exhook
+
+
+# RabbitmqStream 配置 流 emqx_exhook
+rabbitmqStreamConfig:
+  addresses:
+    - rabbitmq-stream://rabbit:TE8qP3MZIksFzkSHZq@rabbitmq01:5551
+    - rabbitmq-stream://rabbit:TE8qP3MZIksFzkSHZq@rabbitmq02:5552
+    - rabbitmq-stream://rabbit:TE8qP3MZIksFzkSHZq@rabbitmq03:5553
+  streamName: emqx_exhook
+  maxAge: 24h
+  maxLengthBytes: 10gb
+  maxSegmentSizeBytes: 1gb
   compressionCodec: zstd
-  # NumPartitions contains the number of partitions to create in the topic, or
-  # -1 if we are either specifying a manual partition assignment or using the
-  # default partitions.
-  numPartitions: 1
-  # ReplicationFactor contains the number of replicas to create for each
-  # partition in the topic, or -1 if we are either specifying a manual
-  # partition assignment or using the default replication factor.
-  replicationFactor: 1
-  # ConfigEntries contains the custom topic configurations to set.
-  sasl:
-    enable: true
-    user: admin
-    password: 123456
-  configEntries:
-    retention.ms: 604800000

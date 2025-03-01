@@ -68,32 +68,37 @@ func BuildRabbitmqStreamMessageProvider(rbbConf conf.RabbitmqStreamConfig) Rabbi
 	if rbbConf.MaxProducersPerClient < 1 {
 		rbbConf.MaxProducersPerClient = 2
 	}
-	options := stream.NewEnvironmentOptions().
-		SetUris(rbbConf.Addresses).
-		SetMaxProducersPerClient(rbbConf.MaxProducersPerClient).
-		SetTLSConfig(tlsConf)
-	env, err := stream.NewEnvironment(options)
-	maxAge := 7 * 24 * time.Hour
+	env, err := stream.NewEnvironment(
+		stream.NewEnvironmentOptions().
+			SetUris(rbbConf.Addresses).
+			SetMaxProducersPerClient(rbbConf.MaxProducersPerClient).
+			SetTLSConfig(tlsConf),
+	)
+	if err != nil {
+		log.Panicf("rabbitmq stream new environment error %v", err)
+	}
+	streamOptions := stream.NewStreamOptions().
+		SetMaxAge(7 * 24 * time.Hour).
+		SetMaxLengthBytes(stream.ByteCapacity{}.GB(10)).
+		SetMaxSegmentSizeBytes(stream.ByteCapacity{}.GB(1))
 	if len(rbbConf.MaxAge) > 0 {
-		maxAge, err = time.ParseDuration(rbbConf.MaxAge)
+		maxAge, err := time.ParseDuration(rbbConf.MaxAge)
 		if err != nil {
 			log.Panicf("rabbitmq stream maxAge format error %v", err)
 		}
+		streamOptions.SetMaxAge(maxAge)
 	}
-	maxLengthBytes := stream.ByteCapacity{}.GB(10)
 	if len(rbbConf.MaxLengthBytes) > 0 {
-		maxLengthBytes = stream.ByteCapacity{}.From(rbbConf.MaxLengthBytes)
+		streamOptions.SetMaxLengthBytes(
+			stream.ByteCapacity{}.From(rbbConf.MaxLengthBytes),
+		)
 	}
-	maxSegmentSizeBytes := stream.ByteCapacity{}.GB(1)
 	if len(rbbConf.MaxSegmentSizeBytes) > 0 {
-		maxSegmentSizeBytes = stream.ByteCapacity{}.From(rbbConf.MaxSegmentSizeBytes)
+		streamOptions.SetMaxSegmentSizeBytes(
+			stream.ByteCapacity{}.From(rbbConf.MaxSegmentSizeBytes),
+		)
 	}
-	err = env.DeclareStream(rbbConf.StreamName,
-		stream.NewStreamOptions().
-			SetMaxAge(maxAge).
-			SetMaxLengthBytes(maxLengthBytes).
-			SetMaxSegmentSizeBytes(maxSegmentSizeBytes),
-	)
+	err = env.DeclareStream(rbbConf.StreamName, streamOptions)
 	defCodec := stream.Compression{}.None()
 	if len(rbbConf.CompressionCodec) > 0 {
 		codec1, ok := rabbitmqStreamCodecs[rbbConf.CompressionCodec]

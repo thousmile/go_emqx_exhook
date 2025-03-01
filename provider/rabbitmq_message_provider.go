@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -64,9 +63,9 @@ func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook
 }
 
 func BuildRabbitmqMessageProvider(rbbConf conf.RabbitmqConfig) RabbitmqMessageProvider {
-	url := strings.Join(rbbConf.Addresses, ",")
+	resolver := rabbitmq.NewStaticResolver(rbbConf.Addresses, false)
 	tlsConf := createRabbitTLS(rbbConf.Tls)
-	conn, err := rabbitmq.NewConn(url,
+	conn, err := rabbitmq.NewClusterConn(resolver,
 		rabbitmq.WithConnectionOptionsLogging,
 		rabbitmq.WithConnectionOptionsConfig(
 			rabbitmq.Config{TLSClientConfig: tlsConf},

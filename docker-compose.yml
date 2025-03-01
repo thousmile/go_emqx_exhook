@@ -4,8 +4,8 @@ networks:
   app-net1:
     ipam:
       config:
-        - subnet: 172.19.0.0/16
-          gateway: 172.19.0.1
+        - subnet: 172.21.0.0/16
+          gateway: 172.21.0.1
 
 services:
 
@@ -35,6 +35,7 @@ services:
       - KAFKA_CFG_SASL_MECHANISM_INTER_BROKER_PROTOCOL=PLAIN
       - KAFKA_INTER_BROKER_USER=admin
       - KAFKA_INTER_BROKER_PASSWORD=123456
+    restart: unless-stopped
     privileged: true
     networks:
       app-net1:
@@ -73,6 +74,7 @@ services:
     volumes:
       - $PWD/kafka3-ssl/keystore/kafka.keystore.jks:/opt/bitnami/kafka/config/certs/kafka.keystore.jks:ro'
       - $PWD/kafka3-ssl/truststore/kafka.truststore.jks:/opt/bitnami/kafka/config/certs/kafka.truststore.jks:ro'
+    restart: unless-stopped
     privileged: true
     networks:
       app-net1:
@@ -88,15 +90,15 @@ services:
     ports:
       - "16565:16565"
     volumes:
-      - /data/kafka3-ssl/config.yaml:/apps/config.yaml
-      - /data/kafka3-ssl/truststore/server.cer.pem:/apps/server.cer.pem
-      - /data/kafka3-ssl/keystore/client.cer.pem:/apps/client.cer.pem
-      - /data/kafka3-ssl/keystore/client.key.pem:/apps/client.key.pem
+      - ./kafka3-ssl/config.yaml:/apps/config.yaml
+      - ./kafka3-ssl/truststore/server.cer.pem:/apps/server.cer.pem
+      - ./kafka3-ssl/keystore/client.cer.pem:/apps/client.cer.pem
+      - ./kafka3-ssl/keystore/client.key.pem:/apps/client.key.pem
       - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
     privileged: true
-    restart: always
     extra_hosts:
-      - mht01:172.19.0.8
+      - mht01:172.21.0.8
     networks:
       app-net1:
     deploy:
@@ -105,19 +107,90 @@ services:
           memory: 258m
 
 
-  get_addr:
-    image: debian:stable-slim
-    container_name: get_addr
+
+  rabbitmq01:
+    image: rabbitmq:4.0.7-management
+    container_name: rabbitmq01
+    hostname: rabbitmq01
+    ports:
+      - "5671:5672"
+      - "5551:5552"
+      - "15671:15672"
     environment:
-      - GIN_MODE=release
+      - RABBITMQ_DEFAULT_USER=rabbit
+      - RABBITMQ_DEFAULT_PASS=rabbit123
+      - RABBITMQ_NODENAME=qlm@rabbitmq01
+      - RABBITMQ_ERLANG_COOKIE=kuviC1Q6J4AWUHz3mQDIPTXiypbp3I5u
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_stream advertised_host localhost
     volumes:
-      - ./get_addr/get_addr_app:/get_addr_app
-      - /etc/localtime:/etc/localtime:ro
-    command: ./get_addr_app
+      - ./rabbitmq01/data:/var/lib/rabbitmq/mnesia
+      - ./rabbitmq01/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq01/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    restart: unless-stopped
     privileged: true
-    restart: always
-    network_mode: host
+    networks:
+      app-net1:
+        ipv4_address: 172.21.0.11
     deploy:
       resources:
         limits:
-          memory: 32m
+          memory: 1g
+
+
+  rabbitmq02:
+    image: rabbitmq:4.0.7-management
+    container_name: rabbitmq02
+    hostname: rabbitmq02
+    ports:
+      - "5672:5672"
+      - "5552:5552"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbit
+      - RABBITMQ_DEFAULT_PASS=rabbit123
+      - RABBITMQ_NODENAME=qlm@rabbitmq02
+      - RABBITMQ_ERLANG_COOKIE=kuviC1Q6J4AWUHz3mQDIPTXiypbp3I5u
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_stream advertised_host localhost
+    volumes:
+      - ./rabbitmq02/data:/var/lib/rabbitmq/mnesia
+      - ./rabbitmq02/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq02/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    restart: unless-stopped
+    privileged: true
+    networks:
+      app-net1:
+        ipv4_address: 172.21.0.12
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+
+  rabbitmq03:
+    image: rabbitmq:4.0.7-management
+    container_name: rabbitmq03
+    hostname: rabbitmq03
+    ports:
+      - "5673:5672"
+      - "5553:5552"
+      - "15673:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbit
+      - RABBITMQ_DEFAULT_PASS=rabbit123
+      - RABBITMQ_NODENAME=qlm@rabbitmq03
+      - RABBITMQ_ERLANG_COOKIE=kuviC1Q6J4AWUHz3mQDIPTXiypbp3I5u
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_stream advertised_host localhost
+    volumes:
+      - ./rabbitmq03/data:/var/lib/rabbitmq/mnesia
+      - ./rabbitmq03/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./rabbitmq03/enabled_plugins:/etc/rabbitmq/enabled_plugins
+    restart: unless-stopped
+    privileged: true
+    networks:
+      app-net1:
+        ipv4_address: 172.21.0.13
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
