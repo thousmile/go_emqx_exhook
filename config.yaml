@@ -1,5 +1,5 @@
 # Rocketmq、Kafka、Rabbitmq、RabbitmqStream、Redis
-mqType: RabbitmqStream
+mqType: Kafka
 
 bridgeRule:
   topics:
@@ -27,3 +27,25 @@ rabbitmqStreamConfig:
   maxLengthBytes: 10gb
   maxSegmentSizeBytes: 1gb
   compressionCodec: zstd
+
+
+# kafka 配置，需要提前创建 主题(emqx_exhook)
+kafkaConfig:
+  addresses:
+    - kafka0:9091
+    - kafka1:9092
+    - kafka2:9093
+  topic: emqx_exhook
+  # 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
+  compressionCodec: zstd
+  # NumPartitions contains the number of partitions to create in the topic, or
+  # -1 if we are either specifying a manual partition assignment or using the
+  # default partitions.
+  numPartitions: 3
+  # ReplicationFactor contains the number of replicas to create for each
+  # partition in the topic, or -1 if we are either specifying a manual
+  # partition assignment or using the default replication factor.
+  replicationFactor: 3
+  # ConfigEntries contains the custom topic configurations to set.
+  configEntries:
+    "retention.ms": 604800000
