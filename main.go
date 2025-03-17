@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"github.com/apache/rocketmq-client-go/v2"
 	"go_emqx_exhook/conf"
-	"go_emqx_exhook/emqx.io/grpc/exhook"
+	"go_emqx_exhook/emqx.io/grpc/exhook_v2"
+	"go_emqx_exhook/emqx.io/grpc/exhook_v3"
 	"go_emqx_exhook/impl"
 	"go_emqx_exhook/provider"
 	"google.golang.org/grpc"
@@ -58,7 +59,7 @@ func main() {
 		msgProvider = rmq
 	}
 
-	ch := make(chan *exhook.Message, appConf.ChanBufferSize)
+	ch := make(chan *exhook_v2.Message, appConf.ChanBufferSize)
 
 	// 发送方式“ queue or direct ”
 	if appConf.SendMethod == "queue" {
@@ -74,10 +75,29 @@ func main() {
 	}
 	srv := grpc.NewServer(grpcServerOptions...)
 
-	// 注册 emqx 的 exhook grpc 服务
-	exhook.RegisterHookProviderServer(srv, &impl.HookProviderServerImpl{
+	// 注册 emqx 的 exhook v2 grpc 服务
+	exhook_v2.RegisterHookProviderServer(srv, &impl.HookProviderServerV2Impl{
 		SourceTopics: rule.Topics,
-		Receive:      ch,
+		Callback: func(request *exhook_v2.MessagePublishRequest) {
+			ch <- request.GetMessage()
+		},
+	})
+
+	// 注册 emqx 的 exhook v3 grpc 服务
+	exhook_v3.RegisterHookProviderServer(srv, &impl.HookProviderServerV3Impl{
+		SourceTopics: rule.Topics,
+		Callback: func(request *exhook_v3.MessagePublishRequest) {
+			ch <- &exhook_v2.Message{
+				Node:      request.GetMessage().GetNode(),
+				Id:        request.GetMessage().GetId(),
+				Qos:       request.GetMessage().GetQos(),
+				From:      request.GetMessage().GetFrom(),
+				Topic:     request.GetMessage().GetTopic(),
+				Payload:   request.GetMessage().GetPayload(),
+				Timestamp: request.GetMessage().GetTimestamp(),
+				Headers:   request.GetMessage().GetHeaders(),
+			}
+		},
 	})
 
 	// 监听 指定端口的 tcp 连接

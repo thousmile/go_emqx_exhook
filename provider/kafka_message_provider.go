@@ -9,7 +9,7 @@ import (
 	"github.com/IBM/sarama"
 	"github.com/xdg-go/scram"
 	"go_emqx_exhook/conf"
-	"go_emqx_exhook/emqx.io/grpc/exhook"
+	"go_emqx_exhook/emqx.io/grpc/exhook_v2"
 	"log"
 	"os"
 	"strconv"
@@ -31,7 +31,7 @@ type KafkaMessageProvider struct {
 	KafkaProducer sarama.SyncProducer
 }
 
-func (r KafkaMessageProvider) BatchSend(messages []*exhook.Message) {
+func (r KafkaMessageProvider) BatchSend(messages []*exhook_v2.Message) {
 	targetMessages := make([]*sarama.ProducerMessage, len(messages))
 	for idx, sourceMessage := range messages {
 		targetMessages[idx] = r.buildTargetMessage(sourceMessage)
@@ -42,7 +42,7 @@ func (r KafkaMessageProvider) BatchSend(messages []*exhook.Message) {
 	}
 }
 
-func (r KafkaMessageProvider) SingleSend(message *exhook.Message) {
+func (r KafkaMessageProvider) SingleSend(message *exhook_v2.Message) {
 	targetMessage := r.buildTargetMessage(message)
 	_, _, err := r.KafkaProducer.SendMessage(targetMessage)
 	if err != nil {
@@ -51,7 +51,7 @@ func (r KafkaMessageProvider) SingleSend(message *exhook.Message) {
 }
 
 // BuildTargetMessage 构建消息
-func (r KafkaMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) *sarama.ProducerMessage {
+func (r KafkaMessageProvider) buildTargetMessage(sourceMessage *exhook_v2.Message) *sarama.ProducerMessage {
 	timestamp := int64(sourceMessage.Timestamp)
 	headers := []sarama.RecordHeader{
 		{Key: []byte(SourceId), Value: []byte(sourceMessage.Id)},

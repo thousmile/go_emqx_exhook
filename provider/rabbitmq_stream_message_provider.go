@@ -5,7 +5,7 @@ import (
 	"github.com/rabbitmq/rabbitmq-stream-go-client/pkg/message"
 	"github.com/rabbitmq/rabbitmq-stream-go-client/pkg/stream"
 	"go_emqx_exhook/conf"
-	"go_emqx_exhook/emqx.io/grpc/exhook"
+	"go_emqx_exhook/emqx.io/grpc/exhook_v2"
 	"log"
 	"strconv"
 	"time"
@@ -24,7 +24,7 @@ type RabbitmqStreamMessageProvider struct {
 	RabbitStreamProducer *stream.Producer
 }
 
-func (r RabbitmqStreamMessageProvider) BatchSend(messages []*exhook.Message) {
+func (r RabbitmqStreamMessageProvider) BatchSend(messages []*exhook_v2.Message) {
 	targetMessages := make([]message.StreamMessage, len(messages))
 	for idx, sourceMessage := range messages {
 		targetMessages[idx] = r.buildTargetMessage(sourceMessage)
@@ -35,7 +35,7 @@ func (r RabbitmqStreamMessageProvider) BatchSend(messages []*exhook.Message) {
 	}
 }
 
-func (r RabbitmqStreamMessageProvider) SingleSend(message *exhook.Message) {
+func (r RabbitmqStreamMessageProvider) SingleSend(message *exhook_v2.Message) {
 	targetMessage := r.buildTargetMessage(message)
 	err := r.RabbitStreamProducer.Send(targetMessage)
 	if err != nil {
@@ -44,7 +44,7 @@ func (r RabbitmqStreamMessageProvider) SingleSend(message *exhook.Message) {
 }
 
 // BuildTargetMessage 构建消息
-func (r RabbitmqStreamMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) message.StreamMessage {
+func (r RabbitmqStreamMessageProvider) buildTargetMessage(sourceMessage *exhook_v2.Message) message.StreamMessage {
 	streamMessage := amqp.NewMessage(sourceMessage.GetPayload())
 	headers := map[string]interface{}{
 		SourceId:        sourceMessage.Id,

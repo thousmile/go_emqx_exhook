@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"github.com/wagslane/go-rabbitmq"
 	"go_emqx_exhook/conf"
-	"go_emqx_exhook/emqx.io/grpc/exhook"
+	"go_emqx_exhook/emqx.io/grpc/exhook_v2"
 	"log"
 	"os"
 	"strconv"
@@ -23,13 +23,13 @@ type RabbitmqMessageProvider struct {
 	RabbitmqConn *rabbitmq.Conn
 }
 
-func (r RabbitmqMessageProvider) BatchSend(messages []*exhook.Message) {
+func (r RabbitmqMessageProvider) BatchSend(messages []*exhook_v2.Message) {
 	for _, message := range messages {
 		r.SingleSend(message)
 	}
 }
 
-func (r RabbitmqMessageProvider) SingleSend(message *exhook.Message) {
+func (r RabbitmqMessageProvider) SingleSend(message *exhook_v2.Message) {
 	headers := r.buildTargetMessageHeaders(message)
 	err := r.RabbitProducer.Publish(
 		message.Payload,
@@ -45,7 +45,7 @@ func (r RabbitmqMessageProvider) SingleSend(message *exhook.Message) {
 }
 
 // BuildTargetMessage 构建消息
-func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook.Message) rabbitmq.Table {
+func (r RabbitmqMessageProvider) buildTargetMessageHeaders(sourceMessage *exhook_v2.Message) rabbitmq.Table {
 	headers := map[string]interface{}{
 		SourceId:        sourceMessage.Id,
 		SourceTopic:     sourceMessage.Topic,

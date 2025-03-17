@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/redis/go-redis/v9"
 	"go_emqx_exhook/conf"
-	"go_emqx_exhook/emqx.io/grpc/exhook"
+	"go_emqx_exhook/emqx.io/grpc/exhook_v2"
 	"log"
 	"strings"
 	"time"
@@ -19,13 +19,13 @@ type RedisMessageProvider struct {
 	RedisClient redis.UniversalClient
 }
 
-func (r RedisMessageProvider) BatchSend(messages []*exhook.Message) {
+func (r RedisMessageProvider) BatchSend(messages []*exhook_v2.Message) {
 	for _, message := range messages {
 		r.SingleSend(message)
 	}
 }
 
-func (r RedisMessageProvider) SingleSend(message *exhook.Message) {
+func (r RedisMessageProvider) SingleSend(message *exhook_v2.Message) {
 	targetMessages := r.buildTargetMessage(message)
 	err := r.RedisClient.XAdd(context.Background(), targetMessages).Err()
 	if err != nil {
@@ -34,7 +34,7 @@ func (r RedisMessageProvider) SingleSend(message *exhook.Message) {
 }
 
 // BuildTargetMessage 构建消息
-func (r RedisMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) *redis.XAddArgs {
+func (r RedisMessageProvider) buildTargetMessage(sourceMessage *exhook_v2.Message) *redis.XAddArgs {
 	values := make(map[string]interface{})
 	values[SourceId] = sourceMessage.Id
 	values[SourceTopic] = sourceMessage.Topic

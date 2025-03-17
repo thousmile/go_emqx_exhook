@@ -6,7 +6,7 @@ import (
 	"github.com/apache/rocketmq-client-go/v2/primitive"
 	"github.com/apache/rocketmq-client-go/v2/producer"
 	"go_emqx_exhook/conf"
-	"go_emqx_exhook/emqx.io/grpc/exhook"
+	"go_emqx_exhook/emqx.io/grpc/exhook_v2"
 	"log"
 	"strconv"
 	"time"
@@ -21,7 +21,7 @@ type RocketmqMessageProvider struct {
 	RmqProducer rocketmq.Producer
 }
 
-func (r RocketmqMessageProvider) BatchSend(messages []*exhook.Message) {
+func (r RocketmqMessageProvider) BatchSend(messages []*exhook_v2.Message) {
 	targetMessages := make([]*primitive.Message, len(messages))
 	for idx, sourceMessage := range messages {
 		targetMessages[idx] = r.buildTargetMessage(sourceMessage)
@@ -32,7 +32,7 @@ func (r RocketmqMessageProvider) BatchSend(messages []*exhook.Message) {
 	}
 }
 
-func (r RocketmqMessageProvider) SingleSend(message *exhook.Message) {
+func (r RocketmqMessageProvider) SingleSend(message *exhook_v2.Message) {
 	targetMessages := r.buildTargetMessage(message)
 	err := r.RmqProducer.SendAsync(
 		context.Background(),
@@ -49,7 +49,7 @@ func (r RocketmqMessageProvider) SingleSend(message *exhook.Message) {
 }
 
 // BuildTargetMessage 构建消息
-func (r RocketmqMessageProvider) buildTargetMessage(sourceMessage *exhook.Message) *primitive.Message {
+func (r RocketmqMessageProvider) buildTargetMessage(sourceMessage *exhook_v2.Message) *primitive.Message {
 	targetMessage := &primitive.Message{
 		Topic: r.Topic,
 		Body:  sourceMessage.Payload,

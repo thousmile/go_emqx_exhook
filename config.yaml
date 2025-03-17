@@ -1,9 +1,19 @@
 # Rocketmq、Kafka、Rabbitmq、RabbitmqStream、Redis
-mqType: Kafka
+mqType: Redis
 
 bridgeRule:
   topics:
     - "/#"
+
+
+# redis 配置
+redisConfig:
+  addresses:
+    - dev:6379
+  streamName: emqx_exhook
+  streamMaxLen: 10000
+  db: 4
+  password: qlm123456
 
 
 # rabbitmq 配置，需要提前创建 队列(exhook_queue) 并且绑定 交换机(amq.direct)

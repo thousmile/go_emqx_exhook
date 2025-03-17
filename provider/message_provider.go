@@ -1,6 +1,8 @@
 package provider
 
-import "go_emqx_exhook/emqx.io/grpc/exhook"
+import (
+	"go_emqx_exhook/emqx.io/grpc/exhook_v2"
+)
 
 const (
 	SourceId        = "sourceId"
@@ -16,8 +18,8 @@ const (
 type MessageProvider interface {
 
 	// BatchSend 批量发送
-	BatchSend(messages []*exhook.Message)
+	BatchSend(messages []*exhook_v2.Message)
 
 	// SingleSend 单条发送
-	SingleSend(message *exhook.Message)
+	SingleSend(message *exhook_v2.Message)
 }
