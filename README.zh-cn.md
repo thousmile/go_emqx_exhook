@@ -41,11 +41,11 @@ rabbitmqConfig:
 #    keyFile: /apps/client.key.pem
 
 
-# rabbitmq stream 配置，需要提前创建 流 emqx_exhook
+# rabbitmq stream 配置
 rabbitmqStreamConfig:
   addresses:
     - rabbitmq-stream://guest:guest@127.0.0.1:5552
-  # 不存在就创建
+  # 主题不存在，就自动创建
   streamName: emqx_exhook
   # 发送者数量
   maxProducersPerClient: 2
@@ -65,11 +65,11 @@ rabbitmqStreamConfig:
 #    keyFile: /apps/client.key.pem
 
 
-# kafka 配置，需要提前创建 主题
+# kafka 配置
 kafkaConfig:
   addresses:
     - 127.0.0.1:9092
-  # 不存在就创建
+  # 主题不存在，就自动创建
   topic: emqx_exhook
   # 消息压缩类型 支持: "none", "gzip", "snappy", "lz4", "zstd", 默认: "none"
   compressionCodec: none
@@ -93,10 +93,11 @@ kafkaConfig:
 #    keyFile: /apps/client.key.pem
 
 
-# redis 配置，无需创建 stream 
+# redis 配置
 redisConfig:
   addresses:
     - 127.0.0.1:6379
+  # 主题不存在，就自动创建
   streamName: emqx_exhook
   # 主题最大的消息数量，超出会自动移除最开始的消息，-1表示没有限制
   streamMaxLen: 100000

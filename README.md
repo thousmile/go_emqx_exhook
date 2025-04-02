@@ -54,7 +54,7 @@ rabbitmqConfig:
 rabbitmqStreamConfig:
   addresses:
     - rabbitmq-stream://guest:guest@127.0.0.1:5552
-  # if it does not exist, create
+  # If it does not exist, create it automatically
   streamName: emqx_exhook
   # number of senders
   maxProducersPerClient: 2
@@ -78,7 +78,7 @@ rabbitmqStreamConfig:
 kafkaConfig:
   addresses:
     - 127.0.0.1:9092
-  # if it does not exist, create
+  # If it does not exist, create it automatically
   topic: emqx_exhook
   # compression type support: "none", "gzip", "snappy", "lz4", "zstd", default: "none"
   compressionCodec: none
@@ -111,6 +111,7 @@ kafkaConfig:
 redisConfig:
   addresses:
     - 127.0.0.1:6379
+  # If it does not exist, create it automatically
   streamName: emqx_exhook
   # The maximum number of messages in a topic. If the number exceeds the limit, the first message will be automatically removed. -1 means no limit
   streamMaxLen: 100000
