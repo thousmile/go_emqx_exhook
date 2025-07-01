@@ -124,6 +124,7 @@ func (h *HookProviderServerV2Impl) OnSessionTerminated(ctx context.Context, requ
 func (h *HookProviderServerV2Impl) OnMessagePublish(ctx context.Context, request *exhook_v2.MessagePublishRequest) (*exhook_v2.ValuedResponse, error) {
 	// 消息发送到管道
 	h.Callback(request)
+	log.Printf("V2..OnMessagePublish: %v \n", request.Message)
 	return &exhook_v2.ValuedResponse{
 		Type:  exhook_v2.ValuedResponse_CONTINUE,
 		Value: &exhook_v2.ValuedResponse_Message{Message: request.GetMessage()},

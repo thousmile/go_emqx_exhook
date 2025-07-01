@@ -19,8 +19,8 @@ syntax = "proto3";
 option csharp_namespace = "Emqx.Exhook.V3";
 option go_package = "emqx.io/grpc/exhook_v3";
 option java_multiple_files = true;
-option java_package = "io.emqx.exhook_v3";
-option java_outer_classname = "EmqxExHookV3Proto";
+option java_package = "io.emqx.exhook";
+option java_outer_classname = "EmqxExHookProto";
 
 // Please make sure the exhook proto version is compatible
 // with the EMQX version
